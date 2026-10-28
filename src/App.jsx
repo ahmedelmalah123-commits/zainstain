@@ -1,6 +1,16 @@
 import React from 'react';
 import './index.css';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
+const SUPABASE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  '';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'MuhO5R89GxlRH3KI_';
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_kos3ux3';
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_9bxkspp';
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'engmala7112004@gmail.com';
+
 export default function App() {
   // NAV SCROLL
   React.useEffect(() => {
@@ -13,6 +23,15 @@ export default function App() {
 
   // MODAL FUNCTIONS
   function openModal() {
+    document.getElementById('fa')?.classList.remove('hide');
+    document.getElementById('succ')?.classList.remove('show');
+    document.getElementById('form-error')?.replaceChildren();
+    document.getElementById('success-note')?.replaceChildren();
+    const submitButton = document.querySelector('.btn-submit');
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = 'سجّل الآن';
+    }
     document.getElementById('overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -30,30 +49,91 @@ export default function App() {
   async function handleSubmit() {
     const nm = document.getElementById('nm').value.trim();
     const em = document.getElementById('em').value.trim();
-    const wa = document.getElementById('wa').value.trim();
-    if (!nm || !em || !wa) {
-      alert('من فضلك اكمل جميع الحقول');
+    const phone = document.getElementById('phone').value.trim();
+    const age = Number(document.getElementById('age').value);
+    const governorate = document.getElementById('governorate').value.trim();
+    const studyInfo = document.getElementById('study-info').value.trim();
+    const website = document.getElementById('website').value.trim();
+    const errorBox = document.getElementById('form-error');
+    const submitButton = document.querySelector('.btn-submit');
+    const setError = (message) => {
+      errorBox.textContent = message;
+    };
+
+    if (website) return;
+    if (!nm || !em || !phone || !age || !governorate || !studyInfo) {
+      setError('من فضلك أكمل كل البيانات المطلوبة.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      setError('اكتب بريدًا إلكترونيًا صحيحًا.');
+      return;
+    }
+    if (!Number.isInteger(age) || age < 10 || age > 100) {
+      setError('اكتب سنًا صحيحًا بين 10 و100.');
+      return;
+    }
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      setError('التسجيل غير متاح حاليًا. لم يتم إعداد قاعدة البيانات بعد.');
       return;
     }
 
-    const btn = document.querySelector('.btn-submit');
-    btn.textContent = 'جاري الإرسال...';
-    btn.disabled = true;
+    submitButton.textContent = 'جارٍ تسجيل البيانات...';
+    submitButton.disabled = true;
+    errorBox.textContent = '';
 
     try {
-      window.emailjs.init("MuhO5R89GxlRH3KI_");
-      await window.emailjs.send("service_kos3ux3", "template_9bxkspp", {
-        from_name: nm,
-        from_email: em,
-        whatsapp: wa,
-        to_email: "engmala7112004@gmail.com"
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/course_registrations`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          name: nm,
+          email: em,
+          phone,
+          age,
+          governorate,
+          study_info: studyInfo,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Supabase request failed (${response.status})`);
+      }
+
+      let notificationFailed = false;
+      try {
+        if (!window.emailjs) throw new Error('EmailJS is unavailable');
+        window.emailjs.init(EMAILJS_PUBLIC_KEY);
+        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          from_name: nm,
+          from_email: em,
+          phone,
+          whatsapp: phone,
+          age,
+          governorate,
+          study_info: studyInfo,
+          to_email: ADMIN_EMAIL,
+        });
+      } catch (emailError) {
+        console.error('Registration email notification failed:', emailError);
+        notificationFailed = true;
+      }
+
+      document.getElementById('success-note').textContent = notificationFailed
+        ? 'تم حفظ التسجيل، لكن تعذّر إرسال إشعار البريد. ستجد البيانات في لوحة قاعدة البيانات.'
+        : 'تم استلام بياناتك بنجاح. سنتواصل معك قريبًا.';
       document.getElementById('fa').classList.add('hide');
       document.getElementById('succ').classList.add('show');
     } catch (err) {
       console.error(err);
-      btn.textContent = 'حدث خطأ، حاول مرة أخرى';
-      btn.disabled = false;
+      setError('تعذّر حفظ التسجيل. تأكد من البيانات وحاول مرة أخرى.');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = 'سجّل الآن';
     }
   }
 
@@ -67,20 +147,23 @@ export default function App() {
     <>
       {/* NAV */}
       <nav id="nav">
-        <div className="nav-logo"><img src="/logo-full.svg" alt="Zainstein" /></div>
+        <a className="nav-logo" href="#about" aria-label="Zainstein - الصفحة الرئيسية">
+          <img src="/zainstein-logo.png" alt="Zainstein" />
+        </a>
         <ul className="nav-links">
           <li><a href="#about">عن الكورس</a></li>
+          <li><a href="#promo">الفيديو</a></li>
           <li><a href="#syllabus">المنهج</a></li>
           <li><a href="#features">المميزات</a></li>
         </ul>
-        <button className="btn-nav" onClick={openModal}>سجّل اهتمامك</button>
+        <button className="btn-nav" onClick={openModal}>التسجيل مفتوح</button>
       </nav>
 
       {/* HERO */}
       <main>
       <section className="hero" id="about">
         <div className="hero-text">
-          <div className="badge">قريباً — كن أول من يعلم</div>
+          <div className="badge">التسجيل مفتوح الآن</div>
           <h1><span className="g">Foundations of<br />Software Engineering</span><br />& Artificial Intelligence</h1>
           <p className="hero-sub">كورس متكامل يأخذك من الأساسيات إلى بناء مشاريع حقيقية باستخدام أحدث تقنيات الـ AI — مُصمَّم خصيصاً للطلاب والمطورين العرب.</p>
           <div className="hero-actions">
@@ -89,7 +172,7 @@ export default function App() {
           </div>
         </div>
         <div className="hero-card">
-          <img src="/hero-bg.png" alt="Zainstein logo" />
+          <img src="/course-cover.webp" alt="غلاف كورس Foundations of Software Engineering & AI" />
         </div>
       </section>
 
@@ -110,6 +193,17 @@ export default function App() {
         <div className="stat">
           <div className="stat-n">∞</div>
           <div className="stat-l">دعم العرب</div>
+        </div>
+      </section>
+
+      {/* PROMO VIDEO PLACEHOLDER */}
+      <section className="promo-section" id="promo">
+        <div className="s-tag">Course Preview</div>
+        <h2 className="s-title">شوف فكرة الكورس</h2>
+        <p className="s-sub">الفيديو التعريفي للكورس هيتضاف هنا قريبًا.</p>
+        <div className="promo-placeholder" role="img" aria-label="مساحة الفيديو التعريفي للكورس، الفيديو قيد التجهيز">
+          <span className="promo-play" aria-hidden="true">▶</span>
+          <span className="promo-label">الفيديو الدعائي قيد التجهيز</span>
         </div>
       </section>
 
@@ -257,7 +351,7 @@ export default function App() {
 
       {/* FOOTER */}
       <footer>
-        <div className="f-logo"><img src="/logo-full.svg" alt="Zainstein" /></div>
+        <div className="f-logo"><img src="/zainstein-logo.png" alt="Zainstein" /></div>
         <p>2026 © Zainstein — Engineering Tomorrow... Today</p>
         <p>Designed by <strong style={{color:'rgba(255,255,255,.6)'}}>Ahmed Al Malah</strong></p>
       </footer>
@@ -268,18 +362,23 @@ export default function App() {
         <div className="modal">
           <button className="modal-close" onClick={closeModal}>✕</button>
           <div className="modal-icon">🎓</div>
-          <h2>احجز مكانك</h2>
-          <p className="sub">سنُعلمك فور توافر الكورس وتكون أول المسجلين</p>
+          <h2>سجّل في الكورس</h2>
+          <p className="sub">املأ البيانات دي عشان نثبت تسجيلك ونتواصل معاك بالتفاصيل.</p>
           <div className="fa" id="fa">
-            <div className="fg"><label>// الاسم الكامل</label><input type="text" id="nm" placeholder="Ahmed Al Malah" /></div>
-            <div className="fg"><label>// البريد الإلكتروني</label><input type="email" id="em" placeholder="ahmed@example.com" /></div>
-            <div className="fg"><label>// رقم الواتساب</label><input type="tel" id="wa" placeholder="+20 1XX XXX XXXX" /></div>
-            <button className="btn-submit" onClick={handleSubmit}>سجّل اهتمامي الآن 🚀</button>
+            <p className="form-error" id="form-error" role="alert"></p>
+            <div className="fg"><label htmlFor="nm">الاسم بالكامل</label><input type="text" id="nm" autoComplete="name" placeholder="الاسم بالكامل" /></div>
+            <div className="fg"><label htmlFor="phone">رقم التليفون / واتساب</label><input type="tel" id="phone" autoComplete="tel" placeholder="+20 1XX XXX XXXX" /></div>
+            <div className="fg"><label htmlFor="em">البريد الإلكتروني</label><input type="email" id="em" autoComplete="email" placeholder="name@example.com" /></div>
+            <div className="fg"><label htmlFor="age">السن</label><input type="number" id="age" min="10" max="100" inputMode="numeric" placeholder="السن" /></div>
+            <div className="fg"><label htmlFor="governorate">المحافظة</label><input type="text" id="governorate" autoComplete="address-level1" placeholder="مثال: القاهرة" /></div>
+            <div className="fg"><label htmlFor="study-info">بتدرس إيه؟</label><input type="text" id="study-info" placeholder="المرحلة الدراسية أو التخصص" /></div>
+            <div className="honeypot" aria-hidden="true"><label htmlFor="website">اترك هذا الحقل فارغًا</label><input type="text" id="website" tabIndex="-1" autoComplete="off" /></div>
+            <button className="btn-submit" onClick={handleSubmit}>سجّل الآن</button>
           </div>
           <div className="success" id="succ">
             <div className="s-icon">✓</div>
-            <h3>تم التسجيل! 🎉</h3>
-            <p>تم التسجيل بنجاح، سنخبرك لتكون أول المعلمين عند توافر الكورس.<br /><br />ترقّب إشعارًا على بريدك الإلكتروني وواتساب.</p>
+            <h3>تم تسجيلك! 🎉</h3>
+            <p id="success-note">تم استلام بياناتك بنجاح. سنتواصل معك قريبًا.</p>
           </div>
         </div>
       </div>
