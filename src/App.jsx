@@ -14,6 +14,7 @@ import {
   X,
   Check,
 } from 'lucide-react';
+import AdminDashboard from './AdminDashboard';
 import './index.css';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
@@ -27,6 +28,40 @@ const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'templat
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'engmala7112004@gmail.com';
 
 export default function App() {
+  const [isAdminView, setIsAdminView] = React.useState(
+    () => typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.hash === '#admin')
+  );
+
+  React.useEffect(() => {
+    const handleLocation = () => {
+      setIsAdminView(window.location.pathname.startsWith('/admin') || window.location.hash === '#admin');
+    };
+    window.addEventListener('popstate', handleLocation);
+    window.addEventListener('hashchange', handleLocation);
+    return () => {
+      window.removeEventListener('popstate', handleLocation);
+      window.removeEventListener('hashchange', handleLocation);
+    };
+  }, []);
+
+  const navigateToAdmin = (e) => {
+    e?.preventDefault();
+    window.history.pushState({}, '', '/admin');
+    setIsAdminView(true);
+    window.scrollTo(0, 0);
+  };
+
+  const navigateToHome = (e) => {
+    e?.preventDefault();
+    window.history.pushState({}, '', '/');
+    setIsAdminView(false);
+    window.scrollTo(0, 0);
+  };
+
+  if (isAdminView) {
+    return <AdminDashboard onBack={navigateToHome} />;
+  }
+
   // NAV SCROLL
   React.useEffect(() => {
     const handleScroll = () => {
@@ -369,6 +404,7 @@ export default function App() {
         <div className="f-logo"><img src="/zainstein-logo.png" alt="Zainstein" /></div>
         <p>2026 © Zainstein — Engineering Tomorrow... Today</p>
         <p>Designed by <strong style={{color:'rgba(255,255,255,.6)'}}>Ahmed Al Malah</strong></p>
+        <p><a href="/admin" onClick={navigateToAdmin} className="admin-link-footer">لوحة تحكم المشرف 🔒</a></p>
       </footer>
       </main>
 
