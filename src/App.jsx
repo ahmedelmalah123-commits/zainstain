@@ -1,4 +1,19 @@
 import React from 'react';
+import {
+  Zap,
+  Play,
+  Cpu,
+  Bot,
+  Layout,
+  Server,
+  Rocket,
+  Briefcase,
+  GraduationCap,
+  Compass,
+  Code2,
+  X,
+  Check,
+} from 'lucide-react';
 import './index.css';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
@@ -167,7 +182,7 @@ export default function App() {
           <h1><span className="g">Foundations of<br />Software Engineering</span><br />& Artificial Intelligence</h1>
           <p className="hero-sub">كورس متكامل يأخذك من الأساسيات إلى بناء مشاريع حقيقية باستخدام أحدث تقنيات الـ AI — مُصمَّم خصيصاً للطلاب والمطورين العرب.</p>
           <div className="hero-actions">
-            <button className="btn-primary" onClick={openModal}>⚡ احجز مكانك الآن</button>
+            <button className="btn-primary" onClick={openModal}><Zap size={18} strokeWidth={2.5} fill="currentColor" /><span>احجز مكانك الآن</span></button>
             <button className="btn-ghost" onClick={() => document.getElementById('syllabus').scrollIntoView({behavior:'smooth'})}>تعرّف على المنهج</button>
           </div>
         </div>
@@ -202,7 +217,7 @@ export default function App() {
         <h2 className="s-title">شوف فكرة الكورس</h2>
         <p className="s-sub">الفيديو التعريفي للكورس هيتضاف هنا قريبًا.</p>
         <div className="promo-placeholder" role="img" aria-label="مساحة الفيديو التعريفي للكورس، الفيديو قيد التجهيز">
-          <span className="promo-play" aria-hidden="true">▶</span>
+          <span className="promo-play" aria-hidden="true"><Play size={28} strokeWidth={2.5} fill="currentColor" /></span>
           <span className="promo-label">الفيديو الدعائي قيد التجهيز</span>
         </div>
       </section>
@@ -214,32 +229,32 @@ export default function App() {
         <p className="s-sub">من أساسيات البرمجة إلى بناء تطبيقات متقدمة مع الذكاء الاصطناعي</p>
         <div className="learn-grid">
           <div className="l-card">
-            <span className="l-icon">🏗️</span>
+            <span className="l-icon"><Cpu size={24} strokeWidth={2.5} /></span>
             <h3>أساسيات هندسة البرمجيات</h3>
             <p>تعلم المبادئ الأساسية والممارسات الحديثة</p>
           </div>
           <div className="l-card">
-            <span className="l-icon">🤖</span>
+            <span className="l-icon"><Bot size={24} strokeWidth={2.5} /></span>
             <h3>تطبيقات الذكاء الاصطناعي</h3>
             <p>دمج الذكاء الاصطناعي في مشاريعك الحقيقية</p>
           </div>
           <div className="l-card">
-            <span className="l-icon">🎨</span>
+            <span className="l-icon"><Layout size={24} strokeWidth={2.5} /></span>
             <h3>Frontend Development</h3>
             <p>React و Tailwind CSS وتصميم واجهات احترافية</p>
           </div>
           <div className="l-card">
-            <span className="l-icon">⚙️</span>
+            <span className="l-icon"><Server size={24} strokeWidth={2.5} /></span>
             <h3>Backend & APIs</h3>
             <p>بناء سيرفرات آمنة وواجهات برمجية قوية</p>
           </div>
           <div className="l-card">
-            <span className="l-icon">🚀</span>
+            <span className="l-icon"><Rocket size={24} strokeWidth={2.5} /></span>
             <h3>Deployment & DevOps</h3>
             <p>نشر تطبيقاتك على الإنترنت بكفاءة</p>
           </div>
           <div className="l-card">
-            <span className="l-icon">💼</span>
+            <span className="l-icon"><Briefcase size={24} strokeWidth={2.5} /></span>
             <h3>Portfolio & Career</h3>
             <p>بناء محفظة احترافية والحصول على فرص عمل</p>
           </div>
@@ -253,19 +268,19 @@ export default function App() {
         <p className="s-sub">الكورس مناسب لمختلف المستويات والخلفيات</p>
         <div className="aud-list">
           <div className="aud-item">
-            <span style={{fontSize:'1.5rem'}}>🎓</span>
+            <div className="aud-icon"><GraduationCap size={22} strokeWidth={2.5} /></div>
             <p><strong>طالب في تخصص الحاسبات أو الهندسة</strong> — يريد تعميق معارفه وفهم الممارسات الحديثة في سوق العمل</p>
           </div>
           <div className="aud-item">
-            <span style={{fontSize:'1.5rem'}}>👶</span>
+            <div className="aud-icon"><Compass size={22} strokeWidth={2.5} /></div>
             <p><strong>مبتدئ في البرمجة</strong> — يريد أن يبدأ بشكل صحيح ومنظم من الصفر إلى المحترفية</p>
           </div>
           <div className="aud-item">
-            <span style={{fontSize:'1.5rem'}}>👨‍💻</span>
+            <div className="aud-icon"><Code2 size={22} strokeWidth={2.5} /></div>
             <p><strong>مطور شاب</strong> — يريد فهم software engineering صح ودخول عالم الـ AI والتقنيات الحديثة</p>
           </div>
           <div className="aud-item">
-            <span style={{fontSize:'1.5rem'}}>🚀</span>
+            <div className="aud-icon"><Rocket size={22} strokeWidth={2.5} /></div>
             <p><strong>أي حد عايز يبني مشاريع</strong> — يشتغل freelance أو يحتاج مهارات عملية فوراً</p>
           </div>
         </div>
@@ -360,8 +375,8 @@ export default function App() {
       {/* MODAL */}
       <div className="overlay" id="overlay" onClick={handleOverlay}>
         <div className="modal">
-          <button className="modal-close" onClick={closeModal}>✕</button>
-          <div className="modal-icon">🎓</div>
+          <button className="modal-close" onClick={closeModal} aria-label="إغلاق"><X size={18} strokeWidth={3} /></button>
+          <div className="modal-icon"><GraduationCap size={28} strokeWidth={2.5} /></div>
           <h2>سجّل في الكورس</h2>
           <p className="sub">املأ البيانات دي عشان نثبت تسجيلك ونتواصل معاك بالتفاصيل.</p>
           <div className="fa" id="fa">
@@ -376,8 +391,8 @@ export default function App() {
             <button className="btn-submit" onClick={handleSubmit}>سجّل الآن</button>
           </div>
           <div className="success" id="succ">
-            <div className="s-icon">✓</div>
-            <h3>تم تسجيلك! 🎉</h3>
+            <div className="s-icon"><Check size={38} strokeWidth={3.5} /></div>
+            <h3>تم استلام تسجيلك بنجاح!</h3>
             <p id="success-note">تم استلام بياناتك بنجاح. سنتواصل معك قريبًا.</p>
           </div>
         </div>

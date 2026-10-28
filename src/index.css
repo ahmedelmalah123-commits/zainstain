@@ -216,6 +216,10 @@ h1 {
 
 .btn-primary,
 .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 13px 23px;
   box-shadow: 5px 5px 0 var(--ink);
   font-size: .92rem;
@@ -327,11 +331,10 @@ h1 {
   width: 74px;
   height: 74px;
   place-items: center;
-  padding-right: 3px;
   border: 3px solid var(--ink);
   background: var(--yellow);
   box-shadow: 5px 5px 0 var(--ink);
-  font-size: 1.7rem;
+  color: var(--ink);
 }
 
 .promo-label {
@@ -422,9 +425,16 @@ section {
 }
 
 .l-icon {
-  display: block;
-  margin-bottom: 13px;
-  font-size: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  border: 2px solid var(--ink);
+  background: var(--white);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--ink);
 }
 
 .l-card h3 {
@@ -469,6 +479,19 @@ section {
 .aud-item:hover {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 var(--ink);
+}
+
+.aud-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--ink);
 }
 
 .aud-item p {
@@ -643,7 +666,7 @@ footer p {
   background: var(--coral);
   box-shadow: 3px 3px 0 var(--ink);
   cursor: pointer;
-  font-family: monospace;
+  color: var(--ink);
 }
 
 .modal-icon {
@@ -656,7 +679,7 @@ footer p {
   border: 2px solid var(--ink);
   background: var(--yellow);
   box-shadow: 4px 4px 0 var(--ink);
-  font-size: 1.5rem;
+  color: var(--ink);
 }
 
 .modal h2 {
@@ -761,8 +784,7 @@ footer p {
   border: var(--line);
   background: var(--mint);
   box-shadow: 5px 5px 0 var(--ink);
-  font-size: 1.9rem;
-  font-weight: 900;
+  color: var(--ink);
 }
 
 .success h3 {
