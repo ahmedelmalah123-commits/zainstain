@@ -1,0 +1,10 @@
+<svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg" width="300" height="250">
+  <rect width="300" height="250" fill="#0a061f"/>
+  <rect x="15" y="15" width="270" height="220" fill="none" stroke="#f67d31" stroke-width="2" rx="8" opacity="0.6"/>
+  <circle cx="150" cy="100" r="35" fill="none" stroke="#f67d31" stroke-width="2" opacity="0.5"/>
+  <circle cx="130" cy="85" r="6" fill="#f67d31" opacity="0.7"/>
+  <circle cx="170" cy="85" r="6" fill="#f67d31" opacity="0.7"/>
+  <circle cx="150" cy="115" r="6" fill="#f67d31" opacity="0.5"/>
+  <text x="150" y="170" text-anchor="middle" font-size="13" fill="#f67d31" opacity="0.7" font-family="monospace">Smart Learning</text>
+  <text x="150" y="190" text-anchor="middle" font-size="13" fill="#f67d31" opacity="0.7" font-family="monospace">Platform</text>
+</svg>
