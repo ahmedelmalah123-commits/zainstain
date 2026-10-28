@@ -246,14 +246,22 @@ export default function App() {
         </div>
       </section>
 
-      {/* PROMO VIDEO PLACEHOLDER */}
+      {/* PROMO VIDEO */}
       <section className="promo-section" id="promo">
         <div className="s-tag">Course Preview</div>
         <h2 className="s-title">شوف فكرة الكورس</h2>
-        <p className="s-sub">الفيديو التعريفي للكورس هيتضاف هنا قريبًا.</p>
-        <div className="promo-placeholder" role="img" aria-label="مساحة الفيديو التعريفي للكورس، الفيديو قيد التجهيز">
-          <span className="promo-play" aria-hidden="true"><Play size={28} strokeWidth={2.5} fill="currentColor" /></span>
-          <span className="promo-label">الفيديو الدعائي قيد التجهيز</span>
+        <p className="s-sub">شاهد الفيديو التعريفي لكورس Foundations of Software Engineering & AI</p>
+        <div className="promo-player-wrap">
+          <video
+            controls
+            playsInline
+            preload="metadata"
+            poster="/course-cover.webp"
+            className="promo-video"
+          >
+            <source src="/course-promo.mp4" type="video/mp4" />
+            متصفحك لا يدعم تشغيل الفيديو مباشرة.
+          </video>
         </div>
       </section>
 

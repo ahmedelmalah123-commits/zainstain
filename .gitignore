@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Raw large media source
+zainstein_course_promo_v2.mp4
