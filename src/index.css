@@ -1413,6 +1413,13 @@ footer p {
   border-top: 2px dashed #e0e0e0;
 }
 
+.reg-whatsapp-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .btn-whatsapp {
   display: inline-flex;
   align-items: center;
@@ -1432,6 +1439,32 @@ footer p {
 .btn-whatsapp:hover {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-copy-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 2px solid var(--ink);
+  background: #ffffff;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: .82rem;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  transition: transform .1s ease, box-shadow .1s ease, background-color .15s ease;
+}
+
+.btn-copy-wa:hover {
+  background: var(--yellow);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-copy-wa.copied {
+  background: var(--mint);
+  color: var(--ink);
 }
 
 .reg-status-changer {

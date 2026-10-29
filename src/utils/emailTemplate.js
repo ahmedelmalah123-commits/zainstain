@@ -18,6 +18,38 @@ function cleanPhoneForWhatsApp(raw) {
 }
 
 /**
+ * Generate customized WhatsApp message for student confirmation
+ * Covers:
+ * 1. Sender identity (أحمد الملاح من منصة Zainstein)
+ * 2. Course enrollment confirmation
+ * 3. Package details (الدفعة الأولى — خصم 100% + ورشة العمل التطبيقية)
+ * 4. Waiting for cohort launch notification
+ */
+export function generateWhatsAppMessage({
+  name = '',
+  registrationNumber = '',
+  registrationCode = '',
+  adminName = 'أحمد الملاح',
+} = {}) {
+  const regNumStr = registrationNumber ? `#${registrationNumber}` : '';
+  const regCodeStr = registrationCode ? `${registrationCode}` : '';
+
+  return `السلام عليكم يا ${name}، معاك ${adminName} من إدارة منصة Zainstein.
+
+حبيت أبلغ حضرتك إنه تم تأكيد حجز مقعدك وتسجيلك بنجاح في كورس:
+Foundations of Software Engineering and Artificial Intelligence
+
+تفاصيل الحجز المسجل:
+- رقم التسجيل: ${regNumStr}
+- كود التسجيل المعتمد: ${regCodeStr}
+- باقة التسجيل: الدفعة الأولى (Early Bird Access - منحة مجانية كاملة بخصم 100% شاملة الورشة التطبيقية العملية)
+
+حالياً بنجهز كافة ترتيبات الكورس ومحتوى الورشة، وبرجاء انتظار التفاصيل ومتابعة رسائل الواتساب هنا؛ هنخطر حضرتك مباشرة بكل التفاصيل ومواعيد المحاضرات وروابط الدخول فور اكتمال العدد وبدء انطلاق المجموعة الأولى قريباً جداً إن شاء الله.
+
+بالتوفيق وسعداء جداً بانضمامك معنا!`;
+}
+
+/**
  * Generate full HTML confirmation email for the student (No emojis)
  */
 export function generateConfirmationEmailHtml(data = {}) {
@@ -310,9 +342,13 @@ export function generateAdminNotificationEmailHtml(data = {}) {
   const safeCode = escapeHtml(String(registrationCode));
   const safeNum = escapeHtml(String(registrationNumber));
   const waPhone = cleanPhoneForWhatsApp(phone);
-  const waMsg = encodeURIComponent(
-    `أهلاً بك يا ${name}، تواصلت معك من إدارة منصة Zainstein بخصوص تسجيلك في كورس Foundations of Software Engineering & AI (كود التسجيل: ${registrationCode}).`
-  );
+  const waMsgRaw = generateWhatsAppMessage({
+    name,
+    registrationNumber,
+    registrationCode,
+    adminName: 'أحمد الملاح',
+  });
+  const waMsg = encodeURIComponent(waMsgRaw);
 
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -424,8 +460,8 @@ export function generateAdminNotificationEmailHtml(data = {}) {
                   <td align="center">
                     ${
                       waPhone
-                        ? `<a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" style="display: inline-block; background-color: #25D366; color: #ffffff; font-weight: 900; font-size: 14px; text-decoration: none; padding: 12px 24px; border: 2px solid #171717; box-shadow: 4px 4px 0 #171717; margin-bottom: 10px;">
-                            مراسلة الطالب عبر واتساب فوراً
+                        ? `<a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" style="display: inline-block; background-color: #25D366; color: #171717; font-weight: 900; font-size: 14px; text-decoration: none; padding: 12px 24px; border: 2px solid #171717; box-shadow: 4px 4px 0 #171717; margin-bottom: 10px;">
+                            التواصل واتساب (بالرسالة الترحيبية وتأكيد الباقة)
                           </a>`
                         : ''
                     }
@@ -478,8 +514,15 @@ ZAINSTEIN — إشعار تسجيل جديد لمالك المنصة
 - الفاوتشر: خصم 100% مفعل
 - الكورس: ${COURSE_FULL_NAME}
 
-رابط مراسلة واتساب فوراً:
-https://wa.me/${cleanPhoneForWhatsApp(phone)}
+رابط التواصل واتساب فوراً (مجهز بالرسالة وتأكيد الباقة):
+https://wa.me/${cleanPhoneForWhatsApp(phone)}?text=${encodeURIComponent(
+    generateWhatsAppMessage({
+      name,
+      registrationNumber,
+      registrationCode,
+      adminName: 'أحمد الملاح',
+    })
+  )}
 
 فريق إدارة Zainstein
 `;

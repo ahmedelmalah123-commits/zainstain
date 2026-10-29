@@ -14,10 +14,12 @@ import {
   Trash2,
   ArrowLeft,
   Check,
+  Copy,
   AlertCircle,
   Clock,
   BookOpen,
 } from 'lucide-react';
+import { generateWhatsAppMessage } from './utils/emailTemplate';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
 const SUPABASE_KEY =
@@ -34,6 +36,15 @@ export default function AdminDashboard({ onBack }) {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [copiedWaId, setCopiedWaId] = useState(null);
+
+  const handleCopyWaMessage = (id, text) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedWaId(id);
+      setTimeout(() => setCopiedWaId(null), 2500);
+    }
+  };
 
   useEffect(() => {
     if (pin) {
@@ -386,9 +397,13 @@ export default function AdminDashboard({ onBack }) {
             ) : (
               filteredRegistrations.map((reg) => {
                 const waPhone = formatEgyptianPhone(reg.phone);
-                const waMsg = encodeURIComponent(
-                  `أهلاً بك يا ${reg.name}، تواصلت معك من فريق كورس Zainstein بخصوص استفسارك وتسجيلك في كورس Foundations of Software Engineering & AI.`
-                );
+                const waText = generateWhatsAppMessage({
+                  name: reg.name,
+                  registrationNumber: reg.registration_number,
+                  registrationCode: reg.registration_code,
+                  adminName: 'أحمد الملاح',
+                });
+                const waMsg = encodeURIComponent(waText);
 
                 return (
                   <article key={reg.id} className="admin-reg-card">
@@ -445,15 +460,28 @@ export default function AdminDashboard({ onBack }) {
                     <div className="reg-card-bottom">
                       <div className="reg-whatsapp-action">
                         {waPhone ? (
-                          <a
-                            href={`https://wa.me/${waPhone}?text=${waMsg}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-whatsapp"
-                          >
-                            <MessageSquare size={16} fill="currentColor" />
-                            <span>مراسلة واتساب فوراً</span>
-                          </a>
+                          <>
+                            <a
+                              href={`https://wa.me/${waPhone}?text=${waMsg}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-whatsapp"
+                              title="فتح محادثة واتساب بالرسالة الترحيبية وتفاصيل الباقة"
+                            >
+                              <MessageSquare size={16} fill="currentColor" />
+                              <span>التواصل واتساب</span>
+                            </a>
+
+                            <button
+                              type="button"
+                              className={`btn-copy-wa ${copiedWaId === reg.id ? 'copied' : ''}`}
+                              onClick={() => handleCopyWaMessage(reg.id, waText)}
+                              title="نسخ نص الرسالة بالكامل إلى الحافظة"
+                            >
+                              {copiedWaId === reg.id ? <Check size={14} /> : <Copy size={14} />}
+                              <span>{copiedWaId === reg.id ? 'تم نسخ الرسالة' : 'نسخ النص'}</span>
+                            </button>
+                          </>
                         ) : (
                           <span className="text-muted">رقم غير صالح</span>
                         )}
