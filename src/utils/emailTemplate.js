@@ -20,15 +20,14 @@ function cleanPhoneForWhatsApp(raw) {
 /**
  * Generate full HTML confirmation email for the student (No emojis)
  */
-export function generateConfirmationEmailHtml({
-  name = '',
-  email = '',
-  phone = '',
-  registrationNumber = 101,
-  registrationCode = 'ZS101A',
-  governorate = '',
-  studyInfo = '',
-}) {
+export function generateConfirmationEmailHtml(data = {}) {
+  const name = data.name || '';
+  const email = data.email || '';
+  const phone = data.phone || '';
+  const registrationNumber = data.registrationNumber ?? data.registration_number ?? 101;
+  const registrationCode = data.registrationCode || data.registration_code || 'ZS101A';
+  const governorate = data.governorate || '';
+  const studyInfo = data.studyInfo || data.study_info || '';
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
   const safePhone = escapeHtml(phone);
@@ -245,15 +244,14 @@ export function generateConfirmationEmailHtml({
 /**
  * Generate plain text email fallback for the student (No emojis)
  */
-export function generateConfirmationEmailText({
-  name = '',
-  email = '',
-  phone = '',
-  registrationNumber = 101,
-  registrationCode = 'ZS101A',
-  governorate = '',
-  studyInfo = '',
-}) {
+export function generateConfirmationEmailText(data = {}) {
+  const name = data.name || '';
+  const email = data.email || '';
+  const phone = data.phone || '';
+  const registrationNumber = data.registrationNumber ?? data.registration_number ?? 101;
+  const registrationCode = data.registrationCode || data.registration_code || 'ZS101A';
+  const governorate = data.governorate || '';
+  const studyInfo = data.studyInfo || data.study_info || '';
   return `=======================================================
 ZAINSTEIN ACADEMY — تأكيد التسجيل الرسمي
 =======================================================
@@ -294,16 +292,15 @@ Engineering Tomorrow... Today
  * Generate Lead Notification HTML email specifically for the Site Owner (mala7.eg@gmail.com)
  * Contains full structured lead info, quick-action WhatsApp button, and clean Neo-Brutalist look.
  */
-export function generateAdminNotificationEmailHtml({
-  name = '',
-  email = '',
-  phone = '',
-  age = '',
-  governorate = '',
-  studyInfo = '',
-  registrationNumber = 101,
-  registrationCode = 'ZS101A',
-}) {
+export function generateAdminNotificationEmailHtml(data = {}) {
+  const name = data.name || '';
+  const email = data.email || '';
+  const phone = data.phone || '';
+  const age = data.age || '';
+  const governorate = data.governorate || '';
+  const studyInfo = data.studyInfo || data.study_info || '';
+  const registrationNumber = data.registrationNumber ?? data.registration_number ?? 101;
+  const registrationCode = data.registrationCode || data.registration_code || 'ZS101A';
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
   const safePhone = escapeHtml(phone);
@@ -456,16 +453,15 @@ export function generateAdminNotificationEmailHtml({
 /**
  * Generate plain text lead notification for site owner (No emojis)
  */
-export function generateAdminNotificationEmailText({
-  name = '',
-  email = '',
-  phone = '',
-  age = '',
-  governorate = '',
-  studyInfo = '',
-  registrationNumber = 101,
-  registrationCode = 'ZS101A',
-}) {
+export function generateAdminNotificationEmailText(data = {}) {
+  const name = data.name || '';
+  const email = data.email || '';
+  const phone = data.phone || '';
+  const age = data.age || '';
+  const governorate = data.governorate || '';
+  const studyInfo = data.studyInfo || data.study_info || '';
+  const registrationNumber = data.registrationNumber ?? data.registration_number ?? 101;
+  const registrationCode = data.registrationCode || data.registration_code || 'ZS101A';
   return `=======================================================
 ZAINSTEIN — إشعار تسجيل جديد لمالك المنصة
 =======================================================

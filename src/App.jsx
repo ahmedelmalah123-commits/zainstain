@@ -41,6 +41,23 @@ const EMAILJS_USER_TEMPLATE_ID =
   'template_9bxkspp';
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'mala7.eg@gmail.com';
 
+/**
+ * Safely send EmailJS with template fallbacks without blocking the UI
+ */
+async function sendEmailSafely(serviceId, templateCandidates, params) {
+  if (typeof window === 'undefined' || !window.emailjs) return false;
+  for (const tid of templateCandidates) {
+    if (!tid) continue;
+    try {
+      await window.emailjs.send(serviceId, tid, params);
+      return true;
+    } catch (err) {
+      console.warn(`EmailJS send attempt with template [${tid}] note:`, err?.text || err?.message || err);
+    }
+  }
+  return false;
+}
+
 export default function App() {
   const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -289,89 +306,96 @@ export default function App() {
         course_name: COURSE_FULL_NAME,
       };
 
-      // Generate Student emails
-      const studentEmailHtml = generateConfirmationEmailHtml(confirmedData);
-      const studentEmailText = generateConfirmationEmailText(confirmedData);
+      // ⚡ IMMEDIATE SUCCESS: Transition to VIP Confirmation Pass instantly!
+      // The user gets their confirmation in less than 1 second (no waiting on external SMTP)
+      setRegistrationSuccessData(confirmedData);
+      setIsSubmitting(false);
 
-      // Generate Owner Lead Notification emails (Detailed registrant info for mala7.eg@gmail.com)
-      const adminEmailHtml = generateAdminNotificationEmailHtml(confirmedData);
-      const adminEmailText = generateAdminNotificationEmailText(confirmedData);
-
-      // Send Email via EmailJS
-      try {
-        if (window.emailjs) {
+      // Asynchronous background email sending (does not block or delay UI display)
+      (async () => {
+        try {
+          if (typeof window === 'undefined' || !window.emailjs) return;
           window.emailjs.init(EMAILJS_PUBLIC_KEY);
 
-          // 1. Send confirmation to student
-          try {
-            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_USER_TEMPLATE_ID, {
-              to_email: em,
-              from_email: em,
-              user_email: em,
-              email: em,
-              recipient: em,
-              to_name: nm,
-              user_name: nm,
-              name: nm,
-              from_name: 'Zainstein Academy',
-              reply_to: ADMIN_EMAIL,
-              registration_number: regNumber,
-              registration_code: regCode,
-              course_name: COURSE_FULL_NAME,
-              voucher_discount: '100%',
-              voucher_code: regCode,
-              early_access_perk: 'أولوية الوصول المبكر للكورس',
-              workshop_perk: 'ورشة عمل تطبيقية مجانية مرتبطة بالكورس',
-              phone,
-              whatsapp: phone,
-              age,
-              governorate,
-              study_info: studyInfo,
-              email_html: studentEmailHtml,
-              message_html: studentEmailHtml,
-              html_content: studentEmailHtml,
-              content_html: studentEmailHtml,
-              message: studentEmailText,
-            });
-          } catch (studentErr) {
-            console.warn('Student email delivery notice:', studentErr);
-          }
+          // Generate Student and Owner email contents
+          const studentEmailHtml = generateConfirmationEmailHtml(confirmedData);
+          const studentEmailText = generateConfirmationEmailText(confirmedData);
+          const adminEmailHtml = generateAdminNotificationEmailHtml(confirmedData);
+          const adminEmailText = generateAdminNotificationEmailText(confirmedData);
 
-          // 2. Send complete Lead Notification to Owner (mala7.eg@gmail.com)
-          try {
-            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-              to_email: ADMIN_EMAIL,
-              from_name: nm,
-              from_email: em,
-              reply_to: em,
-              name: nm,
-              student_name: nm,
-              full_name: nm,
-              email: em,
-              phone: phone,
-              whatsapp: phone,
-              age: age,
-              governorate: governorate,
-              study_info: studyInfo,
-              registration_number: regNumber,
-              registration_code: regCode,
-              course_name: COURSE_FULL_NAME,
-              email_html: adminEmailHtml,
-              message_html: adminEmailHtml,
-              html_content: adminEmailHtml,
-              content_html: adminEmailHtml,
-              message: adminEmailText,
-            });
-          } catch (adminErr) {
-            console.warn('Admin email notification notice:', adminErr);
-          }
+          const templateCandidates = [
+            EMAILJS_USER_TEMPLATE_ID,
+            EMAILJS_TEMPLATE_ID,
+            'template_9bxkspp',
+            'p0ouexp',
+          ].filter(Boolean);
+
+          const studentParams = {
+            to_email: em,
+            from_email: em,
+            user_email: em,
+            email: em,
+            recipient: em,
+            to_name: nm,
+            user_name: nm,
+            name: nm,
+            student_name: nm,
+            from_name: 'Zainstein Academy',
+            reply_to: ADMIN_EMAIL,
+            registration_number: regNumber,
+            registration_code: regCode,
+            course_name: COURSE_FULL_NAME,
+            voucher_discount: '100%',
+            voucher_code: regCode,
+            early_access_perk: 'أولوية الوصول المبكر للكورس',
+            workshop_perk: 'ورشة عمل تطبيقية مجانية مرتبطة بالكورس',
+            phone,
+            whatsapp: phone,
+            age,
+            governorate,
+            study_info: studyInfo,
+            email_html: studentEmailHtml,
+            message_html: studentEmailHtml,
+            html_content: studentEmailHtml,
+            content_html: studentEmailHtml,
+            message: studentEmailText,
+          };
+
+          const adminParams = {
+            to_email: ADMIN_EMAIL,
+            from_name: nm,
+            from_email: em,
+            reply_to: em,
+            name: nm,
+            student_name: nm,
+            full_name: nm,
+            email: em,
+            phone: phone,
+            whatsapp: phone,
+            age: age,
+            governorate: governorate,
+            study_info: studyInfo,
+            registration_number: regNumber,
+            registration_code: regCode,
+            course_name: COURSE_FULL_NAME,
+            voucher_discount: '100%',
+            voucher_code: regCode,
+            email_html: adminEmailHtml,
+            message_html: adminEmailHtml,
+            html_content: adminEmailHtml,
+            content_html: adminEmailHtml,
+            message: adminEmailText,
+          };
+
+          // Send both in parallel in background
+          await Promise.allSettled([
+            sendEmailSafely(EMAILJS_SERVICE_ID, templateCandidates, studentParams),
+            sendEmailSafely(EMAILJS_SERVICE_ID, templateCandidates, adminParams),
+          ]);
+        } catch (emailErr) {
+          console.warn('Background email processing notice:', emailErr);
         }
-      } catch (emailErr) {
-        console.error('Email sending exception:', emailErr);
-      }
-
-      // Transition to VIP Confirmation Pass View
-      setRegistrationSuccessData(confirmedData);
+      })();
     } catch (err) {
       console.error(err);
       setFormError('تعذّر حفظ التسجيل. تأكد من اتصال الإنترنت والبيانات وحاول مرة أخرى.');
