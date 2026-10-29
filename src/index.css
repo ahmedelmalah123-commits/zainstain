@@ -1496,3 +1496,503 @@ footer p {
 .admin-link-footer:hover {
   color: #fff;
 }
+
+/* ==========================================================================
+   REGISTRATION SUCCESS & VIP PASS STYLES
+   ========================================================================== */
+.reg-success-container {
+  width: 100%;
+  animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: right;
+}
+
+.modal.success-modal-expanded {
+  max-width: 580px;
+  padding: 28px 24px;
+}
+
+.reg-success-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.reg-success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 5px 14px;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  margin-bottom: 12px;
+}
+
+.reg-success-title {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.reg-success-sub {
+  font-size: 0.88rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+/* The VIP Pass Ticket */
+.vip-ticket-card {
+  background: var(--white);
+  border: var(--line);
+  box-shadow: 6px 6px 0 var(--ink);
+  margin-bottom: 22px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ticket-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--yellow);
+  border-bottom: var(--line);
+  padding: 10px 16px;
+  gap: 12px;
+}
+
+.ticket-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 900;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.ticket-rank-chip {
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border: 1px solid var(--ink);
+}
+
+.ticket-course-block {
+  padding: 16px 18px 12px;
+  border-bottom: 2px dashed #ccc;
+  background: #faf7ef;
+}
+
+.ticket-label {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.ticket-course-name {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+/* Code section */
+.ticket-code-section {
+  padding: 18px;
+  background: var(--white);
+  border-bottom: 2px dashed #ccc;
+  text-align: center;
+}
+
+.code-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.code-display-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.code-value {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: 'Space Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--blue);
+}
+
+.btn-copy-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: var(--yellow);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+.btn-copy-code:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-copy-code.copied {
+  background: var(--mint);
+  color: #0d381e;
+}
+
+.code-hint {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+/* Voucher notification */
+.ticket-voucher-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--mint);
+  border-bottom: var(--line);
+}
+
+.voucher-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.voucher-details h4 {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #0c361c;
+  margin-bottom: 3px;
+}
+
+.voucher-details p {
+  font-size: 0.78rem;
+  color: #174226;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Perks list */
+.ticket-perks-box {
+  padding: 16px 18px;
+  background: var(--white);
+  border-bottom: var(--line);
+}
+
+.perks-heading {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.perks-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.perks-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.perks-list li strong {
+  display: block;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.perk-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.perk-icon.yellow {
+  color: #d4a300;
+}
+
+.perk-icon.mint {
+  color: #107c41;
+}
+
+/* Email note */
+.ticket-email-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: #faf7ef;
+  font-size: 0.78rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Actions grid */
+.reg-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-action-pass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: var(--line);
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-action-pass:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.btn-action-pass.download {
+  background: var(--yellow);
+  color: var(--ink);
+  grid-column: span 2;
+}
+
+.btn-action-pass.share {
+  background: var(--lilac);
+  color: var(--ink);
+}
+
+.btn-action-pass.close {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   VERIFY CODE MODAL & NAVBAR ACTION
+   ========================================================================== */
+.btn-nav-verify {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 10px;
+  transition: color 0.18s;
+}
+
+.btn-nav-verify:hover {
+  color: var(--blue);
+}
+
+.modal.verify-modal {
+  max-width: 520px;
+}
+
+.modal-icon.verify {
+  background: var(--lilac);
+}
+
+.verify-input-wrap {
+  display: flex;
+  gap: 8px;
+}
+
+.verify-input-wrap input {
+  flex: 1;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.btn-verify-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  background: var(--yellow);
+  border: var(--line);
+  box-shadow: 3px 3px 0 var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-verify-submit:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.verify-error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffebe8;
+  color: #b71c1c;
+  border: 2px solid #b71c1c;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-top: 14px;
+}
+
+.verify-result-card {
+  margin-top: 18px;
+  background: var(--white);
+  border: var(--line);
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 18px;
+  text-align: right;
+  animation: fadeUp 0.25s ease;
+}
+
+.verify-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--mint);
+  color: #0c361c;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.verify-student-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.verify-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.verify-stat {
+  flex: 1;
+  min-width: 120px;
+  background: #faf7ef;
+  border: 2px solid var(--ink);
+  padding: 8px 12px;
+}
+
+.v-label {
+  display: block;
+  font-size: 0.72rem;
+  color: #666;
+  font-weight: 700;
+}
+
+.v-val {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.v-val.code {
+  font-family: 'Space Mono', monospace;
+  color: var(--blue);
+}
+
+.verify-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f4efff;
+  border: 2px solid var(--ink);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.v-perk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.v-icon {
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.verify-footer-note {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 6px;
+}
+
+/* ADMIN BADGE FOR CODE & NUMBER */
+.reg-code-badge {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border: 1px solid var(--ink);
+  margin-right: 6px;
+}
+
+.reg-number-chip {
+  display: inline-block;
+  background: var(--mint);
+  color: #0c361c;
+  font-family: 'Space Mono', monospace;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 2px 7px;
+  border: 1px solid var(--ink);
+  margin-right: 4px;
+}

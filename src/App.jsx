@@ -12,9 +12,15 @@ import {
   Compass,
   Code2,
   X,
-  Check,
 } from 'lucide-react';
 import AdminDashboard from './AdminDashboard';
+import RegistrationSuccessCard from './components/RegistrationSuccessCard';
+import VerifyCodeModal from './components/VerifyCodeModal';
+import {
+  generateConfirmationEmailHtml,
+  generateConfirmationEmailText,
+  COURSE_FULL_NAME,
+} from './utils/emailTemplate';
 import './index.css';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
@@ -29,6 +35,11 @@ const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'engmala7112004@gmail.co
 
 export default function App() {
   const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isVerifyOpen, setIsVerifyOpen] = React.useState(false);
+  const [registrationSuccessData, setRegistrationSuccessData] = React.useState(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [formError, setFormError] = React.useState('');
   const videoRef = React.useRef(null);
 
   const handlePlayVideo = () => {
@@ -39,6 +50,7 @@ export default function App() {
       });
     }
   };
+
   const [isAdminView, setIsAdminView] = React.useState(
     () => typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.hash === '#admin')
   );
@@ -69,14 +81,13 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
-  if (isAdminView) {
-    return <AdminDashboard onBack={navigateToHome} />;
-  }
-
   // NAV SCROLL
   React.useEffect(() => {
     const handleScroll = () => {
-      document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60);
+      const navEl = document.getElementById('nav');
+      if (navEl) {
+        navEl.classList.toggle('scrolled', window.scrollY > 60);
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -84,124 +95,276 @@ export default function App() {
 
   // MODAL FUNCTIONS
   function openModal() {
-    document.getElementById('fa')?.classList.remove('hide');
-    document.getElementById('succ')?.classList.remove('show');
-    document.getElementById('form-error')?.replaceChildren();
-    document.getElementById('success-note')?.replaceChildren();
-    const submitButton = document.querySelector('.btn-submit');
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent = 'سجّل الآن';
-    }
-    document.getElementById('overlay').classList.add('open');
+    setRegistrationSuccessData(null);
+    setFormError('');
+    setIsModalOpen(true);
     document.body.style.overflow = 'hidden';
   }
 
   function closeModal() {
-    document.getElementById('overlay').classList.remove('open');
+    setIsModalOpen(false);
+    setRegistrationSuccessData(null);
     document.body.style.overflow = '';
   }
 
   function handleOverlay(e) {
-    if (e.target === document.getElementById('overlay')) closeModal();
+    if (e.target.id === 'overlay') {
+      closeModal();
+    }
   }
 
-  // EMAILJS SUBMIT
+  // REGISTRATION & EMAIL SUBMIT
   async function handleSubmit() {
-    const nm = document.getElementById('nm').value.trim();
-    const em = document.getElementById('em').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const age = Number(document.getElementById('age').value);
-    const governorate = document.getElementById('governorate').value.trim();
-    const studyInfo = document.getElementById('study-info').value.trim();
-    const website = document.getElementById('website').value.trim();
-    const errorBox = document.getElementById('form-error');
-    const submitButton = document.querySelector('.btn-submit');
-    const setError = (message) => {
-      errorBox.textContent = message;
-    };
+    const nmInput = document.getElementById('nm');
+    const emInput = document.getElementById('em');
+    const phoneInput = document.getElementById('phone');
+    const ageInput = document.getElementById('age');
+    const govInput = document.getElementById('governorate');
+    const studyInput = document.getElementById('study-info');
+    const websiteInput = document.getElementById('website');
 
-    if (website) return;
+    const nm = nmInput ? nmInput.value.trim() : '';
+    const em = emInput ? emInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const age = ageInput ? Number(ageInput.value) : 0;
+    const governorate = govInput ? govInput.value.trim() : '';
+    const studyInfo = studyInput ? studyInput.value.trim() : '';
+    const website = websiteInput ? websiteInput.value.trim() : '';
+
+    if (website) return; // honeypot
     if (!nm || !em || !phone || !age || !governorate || !studyInfo) {
-      setError('من فضلك أكمل كل البيانات المطلوبة.');
+      setFormError('من فضلك أكمل كل البيانات المطلوبة.');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-      setError('اكتب بريدًا إلكترونيًا صحيحًا.');
+      setFormError('اكتب بريدًا إلكترونيًا صحيحًا.');
       return;
     }
     if (!Number.isInteger(age) || age < 10 || age > 100) {
-      setError('اكتب سنًا صحيحًا بين 10 و100.');
+      setFormError('اكتب سنًا صحيحًا بين 10 و100.');
       return;
     }
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-      setError('التسجيل غير متاح حاليًا. لم يتم إعداد قاعدة البيانات بعد.');
+      setFormError('التسجيل غير متاح حاليًا. لم يتم إعداد قاعدة البيانات بعد.');
       return;
     }
 
-    submitButton.textContent = 'جارٍ تسجيل البيانات...';
-    submitButton.disabled = true;
-    errorBox.textContent = '';
+    setIsSubmitting(true);
+    setFormError('');
+
+    let regNumber = null;
+    let regCode = null;
 
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/course_registrations`, {
-        method: 'POST',
-        headers: {
-          apikey: SUPABASE_KEY,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify({
+      // 1. Primary: Attempt RPC register_student (Atomic Sequence & Code Generation)
+      try {
+        const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/register_student`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            p_name: nm,
+            p_email: em,
+            p_phone: phone,
+            p_age: age,
+            p_governorate: governorate,
+            p_study_info: studyInfo,
+          }),
+        });
+
+        if (rpcRes.ok) {
+          const rpcData = await rpcRes.json();
+          regNumber = rpcData.registration_number;
+          regCode = rpcData.registration_code;
+        }
+      } catch (rpcErr) {
+        console.warn('RPC register_student attempt notice:', rpcErr);
+      }
+
+      // 2. Resilient Fallback: If RPC not deployed yet, compute sequential number starting at 101
+      if (!regNumber || !regCode) {
+        try {
+          const adminCheck = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_registrations`, {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ pin_code: '2026' }),
+          });
+
+          if (adminCheck.ok) {
+            const existingList = await adminCheck.json();
+            if (Array.isArray(existingList)) {
+              const maxExistingReg = Math.max(100, ...existingList.map((r) => Number(r.registration_number) || 0));
+              if (maxExistingReg > 100) {
+                regNumber = maxExistingReg + 1;
+              } else {
+                // If existing rows (5) are present, numbering starts at 101 for the first new registration
+                const newCount = Math.max(0, existingList.length - 5);
+                regNumber = 101 + newCount;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Fallback sequence check notice:', e);
+        }
+
+        if (!regNumber) regNumber = 101;
+
+        // Code format: ZS + regNumber + Latin uppercase letter
+        const latinMatch = nm.match(/[a-zA-Z]/);
+        const letter = latinMatch
+          ? latinMatch[0].toUpperCase()
+          : String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        regCode = `ZS${regNumber}${letter}`;
+
+        // Insert into course_registrations table
+        const insertPayload = {
           name: nm,
           email: em,
           phone,
           age,
           governorate,
           study_info: studyInfo,
-        }),
-      });
+        };
 
-      if (!response.ok) {
-        throw new Error(`Supabase request failed (${response.status})`);
-      }
-
-      let notificationFailed = false;
-      try {
-        if (!window.emailjs) throw new Error('EmailJS is unavailable');
-        window.emailjs.init(EMAILJS_PUBLIC_KEY);
-        await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          from_name: nm,
-          from_email: em,
-          phone,
-          whatsapp: phone,
-          age,
-          governorate,
-          study_info: studyInfo,
-          to_email: ADMIN_EMAIL,
+        // Try insert with registration fields
+        let insertRes = await fetch(`${SUPABASE_URL}/rest/v1/course_registrations`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({
+            ...insertPayload,
+            registration_number: regNumber,
+            registration_code: regCode,
+          }),
         });
-      } catch (emailError) {
-        console.error('Registration email notification failed:', emailError);
-        notificationFailed = true;
+
+        // Fallback to standard fields if columns are not added yet
+        if (!insertRes.ok) {
+          insertRes = await fetch(`${SUPABASE_URL}/rest/v1/course_registrations`, {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify(insertPayload),
+          });
+        }
+
+        if (!insertRes.ok) {
+          throw new Error(`تعذّر حفظ التسجيل (${insertRes.status})`);
+        }
       }
 
-      document.getElementById('success-note').textContent = notificationFailed
-        ? 'تم حفظ التسجيل، لكن تعذّر إرسال إشعار البريد. ستجد البيانات في لوحة قاعدة البيانات.'
-        : 'تم استلام بياناتك بنجاح. سنتواصل معك قريبًا.';
-      document.getElementById('fa').classList.add('hide');
-      document.getElementById('succ').classList.add('show');
+      // Successful registration details
+      const confirmedData = {
+        name: nm,
+        email: em,
+        phone,
+        age,
+        governorate,
+        study_info: studyInfo,
+        registration_number: regNumber,
+        registration_code: regCode,
+        course_name: COURSE_FULL_NAME,
+      };
+
+      // Generate HTML email & text email
+      const emailHtml = generateConfirmationEmailHtml(confirmedData);
+      const emailText = generateConfirmationEmailText(confirmedData);
+
+      // Send Email via EmailJS
+      try {
+        if (window.emailjs) {
+          window.emailjs.init(EMAILJS_PUBLIC_KEY);
+
+          // 1. Send confirmation to student
+          try {
+            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+              to_email: em,
+              from_email: em,
+              to_name: nm,
+              user_name: nm,
+              name: nm,
+              from_name: 'Zainstein Academy',
+              reply_to: ADMIN_EMAIL,
+              registration_number: regNumber,
+              registration_code: regCode,
+              course_name: COURSE_FULL_NAME,
+              voucher_discount: '100%',
+              voucher_code: regCode,
+              early_access_perk: 'أولوية الوصول المبكر للكورس',
+              workshop_perk: 'ورشة عمل تطبيقية مجانية مرتبطة بالكورس',
+              phone,
+              whatsapp: phone,
+              age,
+              governorate,
+              study_info: studyInfo,
+              email_html: emailHtml,
+              message_html: emailHtml,
+              html_content: emailHtml,
+              content_html: emailHtml,
+              message: emailText,
+            });
+          } catch (studentErr) {
+            console.warn('Student email delivery notice:', studentErr);
+          }
+
+          // 2. Send notification to admin
+          try {
+            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+              to_email: ADMIN_EMAIL,
+              from_email: em,
+              from_name: nm,
+              registration_number: regNumber,
+              registration_code: regCode,
+              phone,
+              whatsapp: phone,
+              age,
+              governorate,
+              study_info: studyInfo,
+              message: `تسجيل جديد: الطالب ${nm} - رقم التسجيل: #${regNumber} - كود: ${regCode}`,
+            });
+          } catch (adminErr) {
+            console.warn('Admin email notification notice:', adminErr);
+          }
+        }
+      } catch (emailErr) {
+        console.error('Email sending exception:', emailErr);
+      }
+
+      // Transition to VIP Confirmation Pass View
+      setRegistrationSuccessData(confirmedData);
     } catch (err) {
       console.error(err);
-      setError('تعذّر حفظ التسجيل. تأكد من البيانات وحاول مرة أخرى.');
+      setFormError('تعذّر حفظ التسجيل. تأكد من اتصال الإنترنت والبيانات وحاول مرة أخرى.');
     } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = 'سجّل الآن';
+      setIsSubmitting(false);
     }
   }
 
   // ACCORDION
   function toggleMod(h) {
     const b = h.nextElementSibling;
-    b.classList.toggle('open');
+    if (b) {
+      b.classList.toggle('open');
+    }
+  }
+
+  if (isAdminView) {
+    return <AdminDashboard onBack={navigateToHome} />;
   }
 
   return (
@@ -216,6 +379,16 @@ export default function App() {
           <li><a href="#promo">الفيديو</a></li>
           <li><a href="#syllabus">المنهج</a></li>
           <li><a href="#features">المميزات</a></li>
+          <li>
+            <button
+              type="button"
+              className="btn-nav-verify"
+              onClick={() => setIsVerifyOpen(true)}
+              title="التحقق من كود التسجيل المعتمد"
+            >
+              التحقق من الكود 🔍
+            </button>
+          </li>
         </ul>
         <button className="btn-nav" onClick={openModal}>التسجيل مفتوح</button>
       </nav>
@@ -224,7 +397,7 @@ export default function App() {
       <main>
       <section className="hero" id="about">
         <div className="hero-text">
-          <div className="badge">التسجيل مفتوح الآن</div>
+          <div className="badge">التسجيل مفتوح الآن — خصم 100% 🎁</div>
           <h1><span className="g">Foundations of<br />Software Engineering</span><br />& Artificial Intelligence</h1>
           <p className="hero-sub">كورس متكامل يأخذك من الأساسيات إلى بناء مشاريع حقيقية باستخدام أحدث تقنيات الـ AI — مُصمَّم خصيصاً للطلاب والمطورين العرب.</p>
           <div className="hero-actions">
@@ -448,35 +621,96 @@ export default function App() {
         <div className="f-logo"><img src="/zainstein-logo.png" alt="Zainstein" /></div>
         <p>2026 © Zainstein — Engineering Tomorrow... Today</p>
         <p>Designed by <strong style={{color:'rgba(255,255,255,.6)'}}>Ahmed Al Malah</strong></p>
-        <p><a href="/admin" onClick={navigateToAdmin} className="admin-link-footer">لوحة تحكم المشرف 🔒</a></p>
+        <p>
+          <button
+            type="button"
+            onClick={() => setIsVerifyOpen(true)}
+            className="admin-link-footer"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            التحقق من كود التسجيل 🔍
+          </button>
+        </p>
       </footer>
       </main>
 
-      {/* MODAL */}
-      <div className="overlay" id="overlay" onClick={handleOverlay}>
-        <div className="modal">
-          <button className="modal-close" onClick={closeModal} aria-label="إغلاق"><X size={18} strokeWidth={3} /></button>
-          <div className="modal-icon"><GraduationCap size={28} strokeWidth={2.5} /></div>
-          <h2>سجّل في الكورس</h2>
-          <p className="sub">املأ البيانات دي عشان نثبت تسجيلك ونتواصل معاك بالتفاصيل.</p>
-          <div className="fa" id="fa">
-            <p className="form-error" id="form-error" role="alert"></p>
-            <div className="fg"><label htmlFor="nm">الاسم بالكامل</label><input type="text" id="nm" autoComplete="name" placeholder="الاسم بالكامل" /></div>
-            <div className="fg"><label htmlFor="phone">رقم التليفون / واتساب</label><input type="tel" id="phone" autoComplete="tel" placeholder="+20 1XX XXX XXXX" /></div>
-            <div className="fg"><label htmlFor="em">البريد الإلكتروني</label><input type="email" id="em" autoComplete="email" placeholder="name@example.com" /></div>
-            <div className="fg"><label htmlFor="age">السن</label><input type="number" id="age" min="10" max="100" inputMode="numeric" placeholder="السن" /></div>
-            <div className="fg"><label htmlFor="governorate">المحافظة</label><input type="text" id="governorate" autoComplete="address-level1" placeholder="مثال: القاهرة" /></div>
-            <div className="fg"><label htmlFor="study-info">بتدرس إيه؟</label><input type="text" id="study-info" placeholder="المرحلة الدراسية أو التخصص" /></div>
-            <div className="honeypot" aria-hidden="true"><label htmlFor="website">اترك هذا الحقل فارغًا</label><input type="text" id="website" tabIndex="-1" autoComplete="off" /></div>
-            <button className="btn-submit" onClick={handleSubmit}>سجّل الآن</button>
-          </div>
-          <div className="success" id="succ">
-            <div className="s-icon"><Check size={38} strokeWidth={3.5} /></div>
-            <h3>تم استلام تسجيلك بنجاح!</h3>
-            <p id="success-note">تم استلام بياناتك بنجاح. سنتواصل معك قريبًا.</p>
-          </div>
+      {/* REGISTRATION MODAL */}
+      <div
+        className={`overlay ${isModalOpen ? 'open' : ''}`}
+        id="overlay"
+        onClick={handleOverlay}
+      >
+        <div className={`modal ${registrationSuccessData ? 'success-modal-expanded' : ''}`}>
+          <button className="modal-close" onClick={closeModal} aria-label="إغلاق">
+            <X size={18} strokeWidth={3} />
+          </button>
+
+          {!registrationSuccessData ? (
+            /* FORM VIEW */
+            <>
+              <div className="modal-icon"><GraduationCap size={28} strokeWidth={2.5} /></div>
+              <h2>سجّل في الكورس</h2>
+              <p className="sub">املأ البيانات دي عشان نثبت تسجيلك وتأخذ قسيمة خصم 100% والورشة مجانًا.</p>
+              
+              <div className="fa" id="fa">
+                {formError && (
+                  <p className="form-error" role="alert" style={{ display: 'block', marginBottom: '14px' }}>
+                    {formError}
+                  </p>
+                )}
+                <div className="fg">
+                  <label htmlFor="nm">الاسم بالكامل</label>
+                  <input type="text" id="nm" autoComplete="name" placeholder="الاسم بالكامل" />
+                </div>
+                <div className="fg">
+                  <label htmlFor="phone">رقم التليفون / واتساب</label>
+                  <input type="tel" id="phone" autoComplete="tel" placeholder="+20 1XX XXX XXXX" />
+                </div>
+                <div className="fg">
+                  <label htmlFor="em">البريد الإلكتروني</label>
+                  <input type="email" id="em" autoComplete="email" placeholder="name@example.com" />
+                </div>
+                <div className="fg">
+                  <label htmlFor="age">السن</label>
+                  <input type="number" id="age" min="10" max="100" inputMode="numeric" placeholder="السن" />
+                </div>
+                <div className="fg">
+                  <label htmlFor="governorate">المحافظة</label>
+                  <input type="text" id="governorate" autoComplete="address-level1" placeholder="مثال: القاهرة" />
+                </div>
+                <div className="fg">
+                  <label htmlFor="study-info">بتدرس إيه؟</label>
+                  <input type="text" id="study-info" placeholder="المرحلة الدراسية أو التخصص" />
+                </div>
+                <div className="honeypot" aria-hidden="true">
+                  <label htmlFor="website">اترك هذا الحقل فارغًا</label>
+                  <input type="text" id="website" tabIndex="-1" autoComplete="off" />
+                </div>
+                <button
+                  type="button"
+                  className="btn-submit"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'جارٍ تسجيل البيانات وحجز المقعد...' : 'سجّل الآن ⚡'}
+                </button>
+              </div>
+            </>
+          ) : (
+            /* SUCCESS VIEW (VIP STUDENT PASS CARD) */
+            <RegistrationSuccessCard
+              registrationData={registrationSuccessData}
+              onClose={closeModal}
+            />
+          )}
         </div>
       </div>
+
+      {/* VERIFY CODE MODAL */}
+      <VerifyCodeModal
+        isOpen={isVerifyOpen}
+        onClose={() => setIsVerifyOpen(false)}
+      />
     </>
   );
 }

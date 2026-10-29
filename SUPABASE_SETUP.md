@@ -18,6 +18,18 @@ or delete registration records.
 
 5. Redeploy the Vercel project after saving its environment variables.
 
+## Database Migrations (Run in Supabase SQL Editor)
+
+1. `supabase/migrations/20261028000000_course_registrations.sql` (Initial table creation)
+2. `supabase/migrations/20261029000000_admin_rpc.sql` (Admin dashboard RPC)
+3. `supabase/migrations/20261029010000_registration_number_and_code.sql`
+   - Adds `registration_number` and `registration_code`.
+   - Preserves existing registrations (numbered up to 100).
+   - Starts atomic sequence at 101.
+   - Creates atomic RPC `register_student` with race-condition prevention.
+   - Creates public RPC `verify_registration_code` for verification modal.
+   - Updates `get_admin_registrations` to include registration number and code.
+
 ## View new registrations
 
 In the Supabase project, open Table Editor → course_registrations. New

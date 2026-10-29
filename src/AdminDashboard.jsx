@@ -182,8 +182,21 @@ export default function AdminDashboard({ onBack }) {
 
   const exportToCSV = () => {
     if (!registrations.length) return;
-    const headers = ['الاسم', 'رقم الهاتف', 'البريد الإلكتروني', 'السن', 'المحافظة', 'التخصص', 'الحالة', 'تاريخ التسجيل'];
+    const headers = [
+      'رقم التسجيل',
+      'كود التسجيل',
+      'الاسم',
+      'رقم الهاتف',
+      'البريد الإلكتروني',
+      'السن',
+      'المحافظة',
+      'التخصص',
+      'الحالة',
+      'تاريخ التسجيل',
+    ];
     const rows = registrations.map((r) => [
+      r.registration_number || '',
+      `"${r.registration_code || ''}"`,
       `"${r.name || ''}"`,
       `"${r.phone || ''}"`,
       `"${r.email || ''}"`,
@@ -212,7 +225,9 @@ export default function AdminDashboard({ onBack }) {
       (r.phone && r.phone.includes(q)) ||
       (r.email && r.email.toLowerCase().includes(q)) ||
       (r.governorate && r.governorate.toLowerCase().includes(q)) ||
-      (r.study_info && r.study_info.toLowerCase().includes(q));
+      (r.study_info && r.study_info.toLowerCase().includes(q)) ||
+      (r.registration_code && r.registration_code.toLowerCase().includes(q)) ||
+      (r.registration_number && String(r.registration_number).includes(q));
 
     const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -379,7 +394,15 @@ export default function AdminDashboard({ onBack }) {
                   <article key={reg.id} className="admin-reg-card">
                     <div className="reg-card-top">
                       <div className="reg-title-wrap">
-                        <h3>{reg.name}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <h3>{reg.name}</h3>
+                          {reg.registration_number && (
+                            <span className="reg-number-chip">#{reg.registration_number}</span>
+                          )}
+                          {reg.registration_code && (
+                            <span className="reg-code-badge">{reg.registration_code}</span>
+                          )}
+                        </div>
                         <span className={`reg-badge status-${reg.status || 'new'}`}>
                           {reg.status === 'contacted'
                             ? 'تم التواصل'
