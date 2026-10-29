@@ -19,34 +19,40 @@ function cleanPhoneForWhatsApp(raw) {
 
 /**
  * Generate customized WhatsApp message for student confirmation
- * Covers:
- * 1. Sender identity (أحمد الملاح من منصة Zainstein)
- * 2. Course enrollment confirmation
- * 3. Package details (الدفعة الأولى — خصم 100% + ورشة العمل التطبيقية)
- * 4. Waiting for cohort launch notification
+ * Sent on behalf of the platform team to confirm booking, showing the code and all registered details.
  */
-export function generateWhatsAppMessage({
-  name = '',
-  registrationNumber = '',
-  registrationCode = '',
-  adminName = 'أحمد الملاح',
-} = {}) {
+export function generateWhatsAppMessage(data = {}) {
+  const name = data.name || '';
+  const email = data.email || '';
+  const phone = data.phone || '';
+  const age = data.age || '';
+  const governorate = data.governorate || '';
+  const studyInfo = data.studyInfo || data.study_info || '';
+  const registrationNumber = data.registrationNumber ?? data.registration_number ?? '';
+  const registrationCode = data.registrationCode || data.registration_code || '';
+
   const regNumStr = registrationNumber ? `#${registrationNumber}` : '';
   const regCodeStr = registrationCode ? `${registrationCode}` : '';
 
-  return `السلام عليكم يا ${name}، معاك ${adminName} من إدارة منصة Zainstein.
+  return `السلام عليكم يا ${name}، معاك فريق منصة Zainstein Academy.
 
-حبيت أبلغ حضرتك إنه تم تأكيد حجز مقعدك وتسجيلك بنجاح في كورس:
+بنأكد لحضرتك إنه تم تأكيد حجز مقعدك وتسجيلك بنجاح في كورس:
 Foundations of Software Engineering and Artificial Intelligence
 
-تفاصيل الحجز المسجل:
-- رقم التسجيل: ${regNumStr}
+بيانات الحجز المسجلة لدينا:
 - كود التسجيل المعتمد: ${regCodeStr}
+- رقم التسجيل: ${regNumStr}
+- الاسم: ${name}
+- البريد الإلكتروني: ${email}
+- رقم الهاتف / واتساب: ${phone}
+- المحافظة: ${governorate || '—'}
+- السن: ${age ? `${age} سنة` : '—'}
+- المجال الدراسي / المؤهل: ${studyInfo || '—'}
 - باقة التسجيل: الدفعة الأولى (Early Bird Access - منحة مجانية كاملة بخصم 100% شاملة الورشة التطبيقية العملية)
 
-حالياً بنجهز كافة ترتيبات الكورس ومحتوى الورشة، وبرجاء انتظار التفاصيل ومتابعة رسائل الواتساب هنا؛ هنخطر حضرتك مباشرة بكل التفاصيل ومواعيد المحاضرات وروابط الدخول فور اكتمال العدد وبدء انطلاق المجموعة الأولى قريباً جداً إن شاء الله.
+حالياً بنجهز كافة ترتيبات الكورس ومحتوى الورشة، وخليك متابع معانا هنا على الواتساب؛ أول ما نكتمل ونبدأ المجموعة الأولى، هنخطر حضرتك مباشرة بكافة التفاصيل ومواعيد المحاضرات وروابط الدخول.
 
-بالتوفيق وسعداء جداً بانضمامك معنا!`;
+بالتوفيق وسعداء جداً بوجودك معنا!`;
 }
 
 /**
@@ -344,9 +350,13 @@ export function generateAdminNotificationEmailHtml(data = {}) {
   const waPhone = cleanPhoneForWhatsApp(phone);
   const waMsgRaw = generateWhatsAppMessage({
     name,
+    email,
+    phone,
+    age,
+    governorate,
+    studyInfo,
     registrationNumber,
     registrationCode,
-    adminName: 'أحمد الملاح',
   });
   const waMsg = encodeURIComponent(waMsgRaw);
 
@@ -518,9 +528,13 @@ ZAINSTEIN — إشعار تسجيل جديد لمالك المنصة
 https://wa.me/${cleanPhoneForWhatsApp(phone)}?text=${encodeURIComponent(
     generateWhatsAppMessage({
       name,
+      email,
+      phone,
+      age,
+      governorate,
+      studyInfo,
       registrationNumber,
       registrationCode,
-      adminName: 'أحمد الملاح',
     })
   )}
 

@@ -399,9 +399,13 @@ export default function AdminDashboard({ onBack }) {
                 const waPhone = formatEgyptianPhone(reg.phone);
                 const waText = generateWhatsAppMessage({
                   name: reg.name,
-                  registrationNumber: reg.registration_number,
-                  registrationCode: reg.registration_code,
-                  adminName: 'أحمد الملاح',
+                  email: reg.email,
+                  phone: reg.phone,
+                  age: reg.age,
+                  governorate: reg.governorate,
+                  study_info: reg.study_info,
+                  registration_number: reg.registration_number,
+                  registration_code: reg.registration_code,
                 });
                 const waMsg = encodeURIComponent(waText);
 
