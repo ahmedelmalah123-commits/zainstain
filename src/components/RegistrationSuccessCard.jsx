@@ -10,7 +10,7 @@ import {
   Zap,
   Wrench,
   Mail,
-  MessageSquare,
+  Gift,
 } from 'lucide-react';
 import { downloadPassImage } from '../utils/generatePassImage';
 
@@ -66,7 +66,7 @@ export default function RegistrationSuccessCard({
   };
 
   const handleShare = async () => {
-    const text = `🎉 سجلت في كورس "${course_name}" وحصلت على قسيمة خصم 100% ورشة عمل تطبيقية مجانية! كود التسجيل الخاص بي: ${registration_code} — ورقمي: #${registration_number}`;
+    const text = `سجلت في كورس "${course_name}" وحصلت على قسيمة خصم 100% ورشة عمل تطبيقية مجانية! كود التسجيل الخاص بي: ${registration_code} — ورقمي: #${registration_number}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -91,7 +91,7 @@ export default function RegistrationSuccessCard({
           <Sparkles size={16} />
           <span>تهانينا! أنت الآن مسجل رسميًا</span>
         </div>
-        <h2 className="reg-success-title">تم تأكيد تسجيلك بنجاح 🎉</h2>
+        <h2 className="reg-success-title">تم تأكيد تسجيلك بنجاح</h2>
         <p className="reg-success-sub">
           أهلاً بك يا <strong>{name}</strong>! تم حجز مقعدك وتوليد بطاقة تسجيلك الرسمية.
         </p>
@@ -147,7 +147,9 @@ export default function RegistrationSuccessCard({
 
         {/* 100% VOUCHER NOTIFICATION */}
         <div className="ticket-voucher-box">
-          <div className="voucher-icon">🎁</div>
+          <div className="voucher-icon">
+            <Gift size={26} strokeWidth={2.5} />
+          </div>
           <div className="voucher-details">
             <h4>قسيمة خصم 100% مفعلة (Voucher 100% OFF)</h4>
             <p>حصلت على خصم 100% الكامل على الكورس — مقعدك مجاني بالكامل ضمن هذه الدفعة!</p>

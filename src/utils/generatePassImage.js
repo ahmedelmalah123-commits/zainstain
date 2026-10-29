@@ -65,7 +65,7 @@ export function downloadPassImage({
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 16px "Cairo", sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('بطاقة طالب رسمية — VIP PASS ⚡', pad + cardW - 24, pad + 41);
+  ctx.fillText('بطاقة طالب معتمدة — VIP PASS', pad + cardW - 24, pad + 41);
   ctx.textAlign = 'left';
 
   // Yellow Sub-banner
@@ -76,7 +76,7 @@ export function downloadPassImage({
 
   ctx.fillStyle = '#171717';
   ctx.font = 'bold 16px "Cairo", sans-serif';
-  ctx.fillText('🎓 كورس: ' + courseName, pad + 24, pad + 90);
+  ctx.fillText('كورس: ' + courseName, pad + 24, pad + 90);
 
   ctx.textAlign = 'right';
   ctx.font = 'bold 16px "Space Mono", monospace';
@@ -118,7 +118,7 @@ export function downloadPassImage({
 
   ctx.fillStyle = '#171717';
   ctx.font = 'bold 18px "Cairo", sans-serif';
-  ctx.fillText('🎁 قسيمة خصم 100% (VOUCHER FREE)', rightX + 16, midTop + 28);
+  ctx.fillText('قسيمة خصم 100% (VOUCHER 100% OFF)', rightX + 16, midTop + 28);
   ctx.font = '13px "Cairo", sans-serif';
   ctx.fillText('تم تأكيد حصولك على خصم 100% الكامل على الكورس', rightX + 16, midTop + 50);
 
@@ -145,11 +145,11 @@ export function downloadPassImage({
 
   ctx.fillStyle = '#171717';
   ctx.font = 'bold 15px "Cairo", sans-serif';
-  ctx.fillText('⭐ المميزات الحصرية المشمولة بتسجيلك:', pad + 38, botTop + 28);
+  ctx.fillText('المميزات الحصرية المشمولة بتسجيلك:', pad + 38, botTop + 28);
 
   ctx.font = '13px "Cairo", sans-serif';
-  ctx.fillText('⚡ أولوية الوصول المبكر للكورس (Early Bird Access)', pad + 38, botTop + 56);
-  ctx.fillText('🛠️ ورشة عمل تطبيقية تفاعلية مجانًا مع الكورس', pad + 430, botTop + 56);
+  ctx.fillText('• أولوية الوصول المبكر للكورس (Early Bird Access)', pad + 38, botTop + 56);
+  ctx.fillText('• ورشة عمل تطبيقية تفاعلية مجانًا مع الكورس', pad + 430, botTop + 56);
 
   // Footer bar
   const footTop = pad + cardH - 32;

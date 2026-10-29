@@ -239,7 +239,7 @@ export default function AdminDashboard({ onBack }) {
       <header className="admin-header">
         <div className="admin-brand">
           <img src="/zainstein-logo.png" alt="Zainstein" className="admin-logo" />
-          <div className="admin-badge">لوحة الإدارة 🔒</div>
+          <div className="admin-badge">لوحة الإدارة</div>
         </div>
         <div className="admin-nav-actions">
           {isAuthenticated && (
@@ -284,12 +284,12 @@ export default function AdminDashboard({ onBack }) {
                 />
               </div>
               <button type="submit" className="btn-submit" disabled={isLoading}>
-                {isLoading ? 'جارٍ التحقق...' : 'فتح لوحة التحكم ⚡'}
+                {isLoading ? 'جارٍ التحقق...' : 'فتح لوحة التحكم'}
               </button>
             </form>
 
             <div className="admin-hint">
-              <strong>💡 ملاحظة:</strong> الرمز الافتراضي هو <code>2026</code> (أو يمكنك استخدام المفتاح السري لـ Supabase).
+              <strong>ملاحظة:</strong> الرمز الافتراضي هو <code>2026</code> (أو يمكنك استخدام المفتاح السري لـ Supabase).
             </div>
           </div>
         </main>
@@ -408,7 +408,7 @@ export default function AdminDashboard({ onBack }) {
                             ? 'تم التواصل'
                             : reg.status === 'enrolled'
                             ? 'مشترك مؤكد'
-                            : 'تسجيل جديد ⚡'}
+                            : 'تسجيل جديد'}
                         </span>
                       </div>
                       <div className="reg-time">

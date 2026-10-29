@@ -1,13 +1,24 @@
 /**
  * Email Template Generator for Zainstein Academy
- * Generates responsive, Neo-Brutalist HTML emails and plain text fallbacks
- * Compatible with Gmail, Apple Mail, Outlook, and mobile clients.
+ * Generates responsive, Neo-Brutalist HTML emails and plain text fallbacks.
+ * Free of emojis, using professional typographic badges and styling.
  */
 
 export const COURSE_FULL_NAME = 'Foundation of Software Engineering and Artificial Intelligence';
 
 /**
- * Generate full HTML confirmation email
+ * Format Egyptian / International phone to WhatsApp digits
+ */
+function cleanPhoneForWhatsApp(raw) {
+  if (!raw) return '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('01')) return '2' + digits;
+  if (digits.startsWith('201')) return digits;
+  return digits;
+}
+
+/**
+ * Generate full HTML confirmation email for the student (No emojis)
  */
 export function generateConfirmationEmailHtml({
   name = '',
@@ -59,7 +70,7 @@ export function generateConfirmationEmailHtml({
                     <span style="font-size: 11px; background-color: #435bff; color: #ffffff; padding: 3px 8px; font-weight: bold; margin-right: 8px; vertical-align: middle;">ACADEMY</span>
                   </td>
                   <td align="left" style="vertical-align: middle;">
-                    <span style="color: #ffffff; font-size: 12px; font-weight: 600;">تأكيد التسجيل الرسمي ⚡</span>
+                    <span style="color: #ffffff; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.4); padding: 3px 8px;">تأكيد التسجيل الرسمي</span>
                   </td>
                 </tr>
               </table>
@@ -70,10 +81,10 @@ export function generateConfirmationEmailHtml({
           <tr>
             <td style="padding: 30px 26px 20px 26px;">
               <div style="display: inline-block; background-color: #ffe15a; border: 2px solid #171717; padding: 4px 12px; font-weight: 800; font-size: 13px; margin-bottom: 14px; box-shadow: 3px 3px 0 #171717;">
-                🎉 مبروك! تم تأكيد تسجيلك رسميًا
+                [ تأكيد التسجيل المعتمد ]
               </div>
               <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 900; color: #171717; line-height: 1.4;">
-                أهلاً بك يا ${safeName} في رحلة الانطلاق 🚀
+                أهلاً بك يا ${safeName} في الدفعة الأولى
               </h1>
               <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.8; color: #333333;">
                 يسعدنا انضمامك إلى كورس <strong>${COURSE_FULL_NAME}</strong>. تم تسجيل بياناتك بنجاح في قاعدة البيانات وتخصيص بطاقتك وكودك المميز أدناه.
@@ -92,7 +103,7 @@ export function generateConfirmationEmailHtml({
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
                         <td align="right" style="font-weight: 900; font-size: 14px; color: #171717;">
-                          🎓 بطاقة طالب معتمدة — VIP Early Access
+                          بطاقة طالب معتمدة — VIP Early Access
                         </td>
                         <td align="left" style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: bold; color: #171717;">
                           #${safeNum}
@@ -132,10 +143,9 @@ export function generateConfirmationEmailHtml({
                   <td style="padding: 16px 20px; background-color: #b9edcf; border-bottom: 2px solid #171717;">
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
-                        <td width="36" style="vertical-align: middle; font-size: 24px;">🎁</td>
-                        <td style="vertical-align: middle; padding-right: 8px;">
+                        <td style="vertical-align: middle;">
                           <strong style="display: block; font-size: 15px; color: #171717; font-weight: 900;">
-                            حصلت على Voucher بخصم 100% على الكورس!
+                            قسيمة خصم 100% على الكورس (Voucher 100% OFF)
                           </strong>
                           <span style="font-size: 12px; color: #1f422b; font-weight: 600;">
                             تم تفعيل الخصم الكامل على حسابك مجانًا، ومقعدك محجوز ضمن هذه الدفعة.
@@ -156,7 +166,7 @@ export function generateConfirmationEmailHtml({
                     <!-- Perk 1 -->
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 10px;">
                       <tr>
-                        <td width="28" style="vertical-align: top; font-size: 16px;">⚡</td>
+                        <td width="20" style="vertical-align: top; font-weight: bold; color: #435bff;">•</td>
                         <td style="vertical-align: top; font-size: 13px; line-height: 1.6; color: #222;">
                           <strong>أولوية الوصول المبكر (Early Bird Access):</strong>
                           ستكون من أوائل الذين يتم منحهم إمكانية الاطلاع على محتوى الكورس والمواد التدريبية فور جاهزيتها.
@@ -167,7 +177,7 @@ export function generateConfirmationEmailHtml({
                     <!-- Perk 2 -->
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
-                        <td width="28" style="vertical-align: top; font-size: 16px;">🛠️</td>
+                        <td width="20" style="vertical-align: top; font-weight: bold; color: #435bff;">•</td>
                         <td style="vertical-align: top; font-size: 13px; line-height: 1.6; color: #222;">
                           <strong>ورشة عمل تطبيقية خاصة مجانًا:</strong>
                           دعوة مؤكدة لحضور ورشة عمل عملية مكثفة تركز على بناء مشاريع واقعية وربط هندسة البرمجيات بالذكاء الاصطناعي.
@@ -196,7 +206,7 @@ export function generateConfirmationEmailHtml({
                 <tr>
                   <td>
                     <h4 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 900; color: #171717;">
-                      💡 الخطوات القادمة:
+                      الخطوات القادمة:
                     </h4>
                     <p style="margin: 0; font-size: 13px; line-height: 1.7; color: #23163e;">
                       1. احتفظ بكود التسجيل <strong style="font-family: monospace; background: #fff; padding: 1px 6px; border: 1px solid #171717;">${safeCode}</strong> ورقمك <strong style="font-family: monospace; background: #fff; padding: 1px 6px; border: 1px solid #171717;">#${safeNum}</strong>.<br>
@@ -233,7 +243,7 @@ export function generateConfirmationEmailHtml({
 }
 
 /**
- * Generate plain text email fallback
+ * Generate plain text email fallback for the student (No emojis)
  */
 export function generateConfirmationEmailText({
   name = '',
@@ -245,7 +255,7 @@ export function generateConfirmationEmailText({
   studyInfo = '',
 }) {
   return `=======================================================
-🎓 ZAINSTEIN ACADEMY — تأكيد التسجيل الرسمي
+ZAINSTEIN ACADEMY — تأكيد التسجيل الرسمي
 =======================================================
 
 أهلاً بك يا ${name}،
@@ -277,6 +287,205 @@ export function generateConfirmationEmailText({
 
 فريق Zainstein
 Engineering Tomorrow... Today
+`;
+}
+
+/**
+ * Generate Lead Notification HTML email specifically for the Site Owner (mala7.eg@gmail.com)
+ * Contains full structured lead info, quick-action WhatsApp button, and clean Neo-Brutalist look.
+ */
+export function generateAdminNotificationEmailHtml({
+  name = '',
+  email = '',
+  phone = '',
+  age = '',
+  governorate = '',
+  studyInfo = '',
+  registrationNumber = 101,
+  registrationCode = 'ZS101A',
+}) {
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safePhone = escapeHtml(phone);
+  const safeGov = escapeHtml(governorate);
+  const safeStudy = escapeHtml(studyInfo);
+  const safeAge = escapeHtml(String(age));
+  const safeCode = escapeHtml(String(registrationCode));
+  const safeNum = escapeHtml(String(registrationNumber));
+  const waPhone = cleanPhoneForWhatsApp(phone);
+  const waMsg = encodeURIComponent(
+    `أهلاً بك يا ${name}، تواصلت معك من إدارة منصة Zainstein بخصوص تسجيلك في كورس Foundations of Software Engineering & AI (كود التسجيل: ${registrationCode}).`
+  );
+
+  return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل طالب جديد — Zainstein Lead</title>
+</head>
+<body style="margin: 0; padding: 24px 10px; background-color: #fff9ed; font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif; color: #171717; direction: rtl; text-align: right;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td align="center">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 3px solid #171717; box-shadow: 6px 6px 0 #171717;">
+          
+          <!-- TOP HEADER -->
+          <tr>
+            <td style="background-color: #171717; padding: 18px 24px; border-bottom: 3px solid #171717;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="right">
+                    <span style="font-family: 'Space Mono', monospace; font-weight: 900; font-size: 20px; color: #ffe15a;">ZAINSTEIN ADMIN</span>
+                  </td>
+                  <td align="left">
+                    <span style="background-color: #ffe15a; color: #171717; padding: 4px 10px; font-size: 12px; font-weight: 900; border: 1px solid #171717;">إشعار تسجيل جديد</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- TITLE SECTION -->
+          <tr>
+            <td style="padding: 24px 26px 14px 26px;">
+              <span style="display: inline-block; background-color: #b9edcf; border: 2px solid #171717; padding: 3px 10px; font-size: 12px; font-weight: 800; margin-bottom: 8px;">
+                مسجل جديد في قاعدة البيانات
+              </span>
+              <h2 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 900; color: #171717;">
+                طالب جديد: ${safeName}
+              </h2>
+              <p style="margin: 0; font-size: 14px; color: #555;">
+                تم استلام وحفظ بيانات تسجيل جديدة في كورس Foundations of Software Engineering & AI.
+              </p>
+            </td>
+          </tr>
+
+          <!-- REGISTRATION BADGES -->
+          <tr>
+            <td style="padding: 0 26px 20px 26px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #faf7ef; border: 2px solid #171717; padding: 14px;">
+                <tr>
+                  <td width="50%" align="right">
+                    <span style="font-size: 12px; color: #666; font-weight: bold; display: block;">رقم التسجيل:</span>
+                    <span style="font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 900; color: #171717;">#${safeNum}</span>
+                  </td>
+                  <td width="50%" align="left">
+                    <span style="font-size: 12px; color: #666; font-weight: bold; display: block;">كود الطالب المميز:</span>
+                    <span style="font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 900; color: #435bff;">${safeCode}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- LEAD DETAILS TABLE -->
+          <tr>
+            <td style="padding: 0 26px 24px 26px;">
+              <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 900; color: #171717; border-bottom: 2px solid #171717; padding-bottom: 6px;">
+                البيانات الكاملة للمسجل:
+              </h3>
+              
+              <table role="presentation" border="0" cellpadding="8" cellspacing="0" width="100%" style="border-collapse: collapse; font-size: 14px;">
+                <tr style="border-bottom: 1px solid #e0ded6;">
+                  <td width="35%" style="font-weight: 800; color: #555; background-color: #faf7ef;">الاسم بالكامل:</td>
+                  <td style="font-weight: 700; color: #171717;">${safeName}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0ded6;">
+                  <td style="font-weight: 800; color: #555; background-color: #faf7ef;">رقم الهاتف / واتساب:</td>
+                  <td style="font-weight: 700; color: #171717;" dir="ltr">${safePhone}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0ded6;">
+                  <td style="font-weight: 800; color: #555; background-color: #faf7ef;">البريد الإلكتروني:</td>
+                  <td style="font-weight: 700; color: #435bff;"><a href="mailto:${safeEmail}" style="color: #435bff; text-decoration: none;">${safeEmail}</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0ded6;">
+                  <td style="font-weight: 800; color: #555; background-color: #faf7ef;">السن:</td>
+                  <td style="font-weight: 700; color: #171717;">${safeAge} سنة</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0ded6;">
+                  <td style="font-weight: 800; color: #555; background-color: #faf7ef;">المحافظة:</td>
+                  <td style="font-weight: 700; color: #171717;">${safeGov || '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0ded6;">
+                  <td style="font-weight: 800; color: #555; background-color: #faf7ef;">المجال الدراسي / التخصص:</td>
+                  <td style="font-weight: 700; color: #171717;">${safeStudy || '—'}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: 800; color: #555; background-color: #faf7ef;">قسيمة الخصم:</td>
+                  <td style="font-weight: 700; color: #0d381e;">خصم 100% مفعل (Voucher Free)</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ACTION BUTTONS -->
+          <tr>
+            <td style="padding: 0 26px 26px 26px; text-align: center;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center">
+                    ${
+                      waPhone
+                        ? `<a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" style="display: inline-block; background-color: #25D366; color: #ffffff; font-weight: 900; font-size: 14px; text-decoration: none; padding: 12px 24px; border: 2px solid #171717; box-shadow: 4px 4px 0 #171717; margin-bottom: 10px;">
+                            مراسلة الطالب عبر واتساب فوراً
+                          </a>`
+                        : ''
+                    }
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background-color: #171717; padding: 14px 24px; text-align: center; color: #888; font-size: 11px;">
+              لوحة تحكم Zainstein — تم الإرسال تلقائيًا إلى مالك المنصة (mala7.eg@gmail.com).
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/**
+ * Generate plain text lead notification for site owner (No emojis)
+ */
+export function generateAdminNotificationEmailText({
+  name = '',
+  email = '',
+  phone = '',
+  age = '',
+  governorate = '',
+  studyInfo = '',
+  registrationNumber = 101,
+  registrationCode = 'ZS101A',
+}) {
+  return `=======================================================
+ZAINSTEIN — إشعار تسجيل جديد لمالك المنصة
+=======================================================
+
+بيانات الطالب المسجل حديثًا:
+- الاسم بالكامل: ${name}
+- رقم التسجيل: #${registrationNumber}
+- كود التسجيل المميز: ${registrationCode}
+- رقم الهاتف / واتساب: ${phone}
+- البريد الإلكتروني: ${email}
+- السن: ${age} سنة
+- المحافظة: ${governorate}
+- المجال الدراسي / التخصص: ${studyInfo}
+- الفاوتشر: خصم 100% مفعل
+- الكورس: ${COURSE_FULL_NAME}
+
+رابط مراسلة واتساب فوراً:
+https://wa.me/${cleanPhoneForWhatsApp(phone)}
+
+فريق إدارة Zainstein
 `;
 }
 

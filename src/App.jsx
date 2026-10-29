@@ -12,6 +12,8 @@ import {
   Compass,
   Code2,
   X,
+  Search,
+  Gift,
 } from 'lucide-react';
 import AdminDashboard from './AdminDashboard';
 import RegistrationSuccessCard from './components/RegistrationSuccessCard';
@@ -19,6 +21,8 @@ import VerifyCodeModal from './components/VerifyCodeModal';
 import {
   generateConfirmationEmailHtml,
   generateConfirmationEmailText,
+  generateAdminNotificationEmailHtml,
+  generateAdminNotificationEmailText,
   COURSE_FULL_NAME,
 } from './utils/emailTemplate';
 import './index.css';
@@ -35,7 +39,7 @@ const EMAILJS_USER_TEMPLATE_ID =
   import.meta.env.VITE_EMAILJS_USER_TEMPLATE_ID ||
   import.meta.env.VITE_EMAILJS_TEMPLATE_ID ||
   'template_9bxkspp';
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'engmala7112004@gmail.com';
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'mala7.eg@gmail.com';
 
 export default function App() {
   const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
@@ -285,9 +289,13 @@ export default function App() {
         course_name: COURSE_FULL_NAME,
       };
 
-      // Generate HTML email & text email
-      const emailHtml = generateConfirmationEmailHtml(confirmedData);
-      const emailText = generateConfirmationEmailText(confirmedData);
+      // Generate Student emails
+      const studentEmailHtml = generateConfirmationEmailHtml(confirmedData);
+      const studentEmailText = generateConfirmationEmailText(confirmedData);
+
+      // Generate Owner Lead Notification emails (Detailed registrant info for mala7.eg@gmail.com)
+      const adminEmailHtml = generateAdminNotificationEmailHtml(confirmedData);
+      const adminEmailText = generateAdminNotificationEmailText(confirmedData);
 
       // Send Email via EmailJS
       try {
@@ -319,30 +327,40 @@ export default function App() {
               age,
               governorate,
               study_info: studyInfo,
-              email_html: emailHtml,
-              message_html: emailHtml,
-              html_content: emailHtml,
-              content_html: emailHtml,
-              message: emailText,
+              email_html: studentEmailHtml,
+              message_html: studentEmailHtml,
+              html_content: studentEmailHtml,
+              content_html: studentEmailHtml,
+              message: studentEmailText,
             });
           } catch (studentErr) {
             console.warn('Student email delivery notice:', studentErr);
           }
 
-          // 2. Send notification to admin
+          // 2. Send complete Lead Notification to Owner (mala7.eg@gmail.com)
           try {
             await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
               to_email: ADMIN_EMAIL,
-              from_email: em,
               from_name: nm,
+              from_email: em,
+              reply_to: em,
+              name: nm,
+              student_name: nm,
+              full_name: nm,
+              email: em,
+              phone: phone,
+              whatsapp: phone,
+              age: age,
+              governorate: governorate,
+              study_info: studyInfo,
               registration_number: regNumber,
               registration_code: regCode,
-              phone,
-              whatsapp: phone,
-              age,
-              governorate,
-              study_info: studyInfo,
-              message: `تسجيل جديد: الطالب ${nm} - رقم التسجيل: #${regNumber} - كود: ${regCode}`,
+              course_name: COURSE_FULL_NAME,
+              email_html: adminEmailHtml,
+              message_html: adminEmailHtml,
+              html_content: adminEmailHtml,
+              content_html: adminEmailHtml,
+              message: adminEmailText,
             });
           } catch (adminErr) {
             console.warn('Admin email notification notice:', adminErr);
@@ -393,7 +411,8 @@ export default function App() {
               onClick={() => setIsVerifyOpen(true)}
               title="التحقق من كود التسجيل المعتمد"
             >
-              التحقق من الكود 🔍
+              <Search size={14} />
+              <span>التحقق من الكود</span>
             </button>
           </li>
         </ul>
@@ -404,7 +423,10 @@ export default function App() {
       <main>
       <section className="hero" id="about">
         <div className="hero-text">
-          <div className="badge">التسجيل مفتوح الآن — خصم 100% 🎁</div>
+          <div className="badge">
+            <Gift size={15} />
+            <span>التسجيل مفتوح الآن — خصم 100%</span>
+          </div>
           <h1><span className="g">Foundations of<br />Software Engineering</span><br />& Artificial Intelligence</h1>
           <p className="hero-sub">كورس متكامل يأخذك من الأساسيات إلى بناء مشاريع حقيقية باستخدام أحدث تقنيات الـ AI — مُصمَّم خصيصاً للطلاب والمطورين العرب.</p>
           <div className="hero-actions">
@@ -475,7 +497,10 @@ export default function App() {
               <div className="promo-big-play">
                 <Play size={36} strokeWidth={2.5} fill="currentColor" />
               </div>
-              <span className="promo-play-text">اضغط للمشاهدة الآن ⚡</span>
+              <span className="promo-play-text">
+                <Play size={16} fill="currentColor" />
+                <span>اضغط للمشاهدة الآن</span>
+              </span>
             </div>
           )}
         </div>
@@ -635,7 +660,8 @@ export default function App() {
             className="admin-link-footer"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            التحقق من كود التسجيل 🔍
+            <Search size={14} style={{ verticalAlign: 'middle', marginLeft: '4px' }} />
+            <span>التحقق من كود التسجيل</span>
           </button>
         </p>
       </footer>
@@ -699,7 +725,8 @@ export default function App() {
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'جارٍ تسجيل البيانات وحجز المقعد...' : 'سجّل الآن ⚡'}
+                  <Zap size={16} fill="currentColor" style={{ verticalAlign: 'middle', marginLeft: '6px' }} />
+                  <span>{isSubmitting ? 'جارٍ تسجيل البيانات وحجز المقعد...' : 'سجّل الآن'}</span>
                 </button>
               </div>
             </>

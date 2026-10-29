@@ -9,6 +9,7 @@ import {
   Zap,
   Wrench,
   ShieldCheck,
+  Gift,
 } from 'lucide-react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
@@ -146,11 +147,11 @@ export default function VerifyCodeModal({ isOpen, onClose }) {
           <div className="verify-result-card">
             <div className="verify-badge-status">
               <CheckCircle2 size={18} />
-              <span>كود صالح ومسجل رسميًا ✅</span>
+              <span>كود صالح ومسجل رسميًا</span>
             </div>
 
             <h3 className="verify-student-name">
-              أهلاً بك يا {result.student_first_name || 'طالب متميز'} 👋
+              أهلاً بك يا {result.student_first_name || 'طالب متميز'}
             </h3>
 
             <div className="verify-stats-row">
@@ -166,16 +167,16 @@ export default function VerifyCodeModal({ isOpen, onClose }) {
 
             <div className="verify-perks">
               <div className="v-perk-item">
-                <Sparkles size={16} className="v-icon" />
-                <span>قسيمة خصم 100% مفعلة (Voucher Free) 🎁</span>
+                <Gift size={16} className="v-icon" />
+                <span>قسيمة خصم 100% مفعلة (Voucher Free)</span>
               </div>
               <div className="v-perk-item">
                 <Zap size={16} className="v-icon" />
-                <span>أولوية الوصول المبكر للكورس (Early Access) ⚡</span>
+                <span>أولوية الوصول المبكر للكورس (Early Access)</span>
               </div>
               <div className="v-perk-item">
                 <Wrench size={16} className="v-icon" />
-                <span>ورشة العمل التطبيقية مشمولة مجانًا 🛠️</span>
+                <span>ورشة العمل التطبيقية مشمولة مجانًا</span>
               </div>
             </div>
 

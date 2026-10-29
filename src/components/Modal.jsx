@@ -149,7 +149,7 @@ export default function Modal({ isOpen, onClose }) {
                     animate={{ rotate: 360 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    <span className="text-2xl">🎓</span>
+                    <span className="text-2xl"><GraduationCap size={28} /></span>
                   </motion.div>
 
                   {/* Title */}
