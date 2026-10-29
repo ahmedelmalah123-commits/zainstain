@@ -31,6 +31,10 @@ const SUPABASE_KEY =
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'MuhO5R89GxlRH3KI_';
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_kos3ux3';
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_9bxkspp';
+const EMAILJS_USER_TEMPLATE_ID =
+  import.meta.env.VITE_EMAILJS_USER_TEMPLATE_ID ||
+  import.meta.env.VITE_EMAILJS_TEMPLATE_ID ||
+  'template_9bxkspp';
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'engmala7112004@gmail.com';
 
 export default function App() {
@@ -292,9 +296,12 @@ export default function App() {
 
           // 1. Send confirmation to student
           try {
-            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_USER_TEMPLATE_ID, {
               to_email: em,
               from_email: em,
+              user_email: em,
+              email: em,
+              recipient: em,
               to_name: nm,
               user_name: nm,
               name: nm,
