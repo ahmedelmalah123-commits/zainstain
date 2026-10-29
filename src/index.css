@@ -328,6 +328,53 @@ h1 {
   background: #000;
 }
 
+.promo-overlay-btn {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: background .2s ease;
+}
+
+.promo-overlay-btn:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.promo-big-play {
+  display: flex;
+  width: 82px;
+  height: 82px;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--ink);
+  background: var(--yellow);
+  box-shadow: 5px 5px 0 var(--ink);
+  color: var(--ink);
+  padding-right: 3px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.promo-overlay-btn:hover .promo-big-play {
+  transform: translate(2px, 2px) scale(1.05);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.promo-play-text {
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: .92rem;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
 /* Main sections */
 section {
   position: relative;
@@ -870,6 +917,23 @@ footer p {
 
   section {
     padding: 65px 7%;
+  }
+
+  .promo-player-wrap {
+    margin-top: 24px;
+    box-shadow: 6px 6px 0 var(--yellow);
+    border-width: 3px;
+  }
+
+  .promo-big-play {
+    width: 66px;
+    height: 66px;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+
+  .promo-play-text {
+    font-size: .82rem;
+    padding: 6px 14px;
   }
 
   .learn-grid {

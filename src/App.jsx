@@ -28,6 +28,17 @@ const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'templat
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'engmala7112004@gmail.com';
 
 export default function App() {
+  const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
+  const videoRef = React.useRef(null);
+
+  const handlePlayVideo = () => {
+    if (videoRef.current) {
+      setIsVideoPlaying(true);
+      videoRef.current.play().catch((err) => {
+        console.warn('Play prevented:', err);
+      });
+    }
+  };
   const [isAdminView, setIsAdminView] = React.useState(
     () => typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.hash === '#admin')
   );
@@ -253,15 +264,40 @@ export default function App() {
         <p className="s-sub">شاهد الفيديو التعريفي لكورس Foundations of Software Engineering & AI</p>
         <div className="promo-player-wrap">
           <video
+            ref={videoRef}
             controls
             playsInline
-            preload="metadata"
-            poster="/course-cover.webp"
+            webkit-playsinline="true"
+            x5-playsinline="true"
+            preload="auto"
+            poster={isVideoPlaying ? undefined : '/course-cover.webp'}
             className="promo-video"
+            onPlay={() => setIsVideoPlaying(true)}
+            onPause={() => {
+              if (videoRef.current && videoRef.current.currentTime === 0) {
+                setIsVideoPlaying(false);
+              }
+            }}
+            onEnded={() => setIsVideoPlaying(false)}
           >
             <source src="/course-promo.mp4" type="video/mp4" />
             متصفحك لا يدعم تشغيل الفيديو مباشرة.
           </video>
+
+          {!isVideoPlaying && (
+            <div
+              className="promo-overlay-btn"
+              onClick={handlePlayVideo}
+              role="button"
+              tabIndex={0}
+              aria-label="تشغيل الفيديو التعريفي"
+            >
+              <div className="promo-big-play">
+                <Play size={36} strokeWidth={2.5} fill="currentColor" />
+              </div>
+              <span className="promo-play-text">اضغط للمشاهدة الآن ⚡</span>
+            </div>
+          )}
         </div>
       </section>
 
