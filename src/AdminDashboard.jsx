@@ -15,11 +15,13 @@ import {
   ArrowLeft,
   Check,
   Copy,
+  Send,
   AlertCircle,
   Clock,
   BookOpen,
 } from 'lucide-react';
 import { generateWhatsAppMessage } from './utils/emailTemplate';
+import BroadcastModal from './components/BroadcastModal';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
 const SUPABASE_KEY =
@@ -37,6 +39,7 @@ export default function AdminDashboard({ onBack }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [copiedWaId, setCopiedWaId] = useState(null);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
   const handleCopyWaMessage = (id, text) => {
     if (navigator?.clipboard?.writeText) {
@@ -365,6 +368,16 @@ export default function AdminDashboard({ onBack }) {
               </select>
 
               <button
+                className="btn-admin-action yellow"
+                onClick={() => setIsBroadcastOpen(true)}
+                title="إرسال رسائل المتابعة وتحديثات السوشيال ميديا لجميع المسجلين"
+                disabled={!registrations.length}
+              >
+                <Send size={16} />
+                <span>حملة السوشيال ميديا (واتساب)</span>
+              </button>
+
+              <button
                 className="btn-admin-action"
                 onClick={() => fetchRegistrations(pin)}
                 title="تحديث البيانات"
@@ -518,6 +531,13 @@ export default function AdminDashboard({ onBack }) {
           </section>
         </main>
       )}
+
+      {/* BROADCAST MODAL */}
+      <BroadcastModal
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
+        registrations={registrations}
+      />
     </div>
   );
 }
