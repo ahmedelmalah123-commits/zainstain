@@ -76,13 +76,18 @@ export default function App() {
     }
   };
 
-  const [isAdminView, setIsAdminView] = React.useState(
-    () => typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.hash === '#admin')
-  );
+  const checkIsAdmin = () => {
+    if (typeof window === 'undefined') return false;
+    const p = window.location.pathname.toLowerCase();
+    const h = window.location.hash.toLowerCase();
+    return p.startsWith('/admin') || h === '#admin' || h.startsWith('#/admin') || h.startsWith('#admin');
+  };
+
+  const [isAdminView, setIsAdminView] = React.useState(checkIsAdmin);
 
   React.useEffect(() => {
     const handleLocation = () => {
-      setIsAdminView(window.location.pathname.startsWith('/admin') || window.location.hash === '#admin');
+      setIsAdminView(checkIsAdmin());
     };
     window.addEventListener('popstate', handleLocation);
     window.addEventListener('hashchange', handleLocation);
@@ -677,7 +682,7 @@ export default function App() {
         <div className="f-logo"><img src="/zainstein-logo.png" alt="Zainstein" /></div>
         <p>2026 © Zainstein — Engineering Tomorrow... Today</p>
         <p>Designed by <strong style={{color:'rgba(255,255,255,.6)'}}>Ahmed Al Malah</strong></p>
-        <p>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
           <button
             type="button"
             onClick={() => setIsVerifyOpen(true)}
@@ -687,7 +692,17 @@ export default function App() {
             <Search size={14} style={{ verticalAlign: 'middle', marginLeft: '4px' }} />
             <span>التحقق من كود التسجيل</span>
           </button>
-        </p>
+          <span style={{ opacity: 0.3 }}>•</span>
+          <button
+            type="button"
+            onClick={navigateToAdmin}
+            className="admin-link-footer"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}
+            title="الدخول إلى لوحة الإدارة والتحليلات"
+          >
+            <span>لوحة الإدارة ⚡</span>
+          </button>
+        </div>
       </footer>
       </main>
 

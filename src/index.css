@@ -3414,3 +3414,311 @@ footer p {
     flex: 1;
   }
 }
+
+/* ========================================================
+   NEO-BRUTALIST 3,684 DATASET & PAGINATION STYLES
+   ======================================================== */
+.record-type-tabs-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--paper);
+  padding: 4px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.btn-record-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-record-type:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.btn-record-type.active {
+  background: var(--white);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.btn-record-type.real.active {
+  background: var(--mint);
+}
+
+.btn-record-type.synthetic.active {
+  background: var(--yellow);
+}
+
+/* Record Type Visual Badges on Student Cards */
+.record-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1.5px solid var(--ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.record-type-badge.real-badge {
+  background: #d4f8e3;
+  color: #0d5e31;
+}
+
+.record-type-badge.synth-badge {
+  background: #fff3c4;
+  color: #7a4f01;
+}
+
+.admin-reg-card.real-record-card {
+  border-left: 8px solid #10b981;
+}
+
+.admin-reg-card.synthetic-record-card {
+  border-left: 8px solid #f59e0b;
+  background: #fffdf9;
+}
+
+/* Synthetic Anti-Contact Banner (Strict Protection Guardrail) */
+.synth-anti-contact-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #fef3c7;
+  border: 2px dashed #d97706;
+  color: #92400e;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.synth-protected-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: 1.5px solid #9ca3af;
+  color: #4b5563;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Pagination Header & Controls */
+.pagination-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.pagination-count-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.neo-pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-page-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 2px solid var(--ink);
+  background: var(--white);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.btn-page-nav:hover:not(:disabled) {
+  background: var(--yellow);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-page-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.page-indicator {
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  background: var(--white);
+  border: 1.5px solid var(--ink);
+}
+
+.pagination-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+/* 9 KPI Specific Card Accents */
+.kpi-card.male-kpi .kpi-badge {
+  background: #dbe4ff;
+  color: #1c3d94;
+}
+
+.kpi-card.female-kpi .kpi-badge {
+  background: #ffe3de;
+  color: #8c1d10;
+}
+
+.kpi-card.countries-kpi .kpi-badge {
+  background: #d4f8e3;
+  color: #0d5e31;
+}
+
+.kpi-card.employees .kpi-badge {
+  background: #e9deff;
+  color: #4b1c94;
+}
+
+.kpi-card.growth .kpi-badge {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.kpi-card.avg .kpi-badge {
+  background: #dbe4ff;
+  color: #1c3d94;
+}
+
+.text-blue {
+  color: #435bff;
+}
+
+.text-coral {
+  color: #ff7866;
+}
+
+.record-type-tag {
+  background: var(--mint) !important;
+}
+
+/* Timeline Active KPI Chip & Breakdown Cards */
+.timeline-active-kpi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 0.8rem;
+}
+
+.timeline-active-kpi-chip .chip-day {
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.timeline-active-kpi-chip .chip-count {
+  color: #1d4ed8;
+}
+
+.timeline-active-kpi-chip .chip-rate {
+  color: #d97706;
+}
+
+.timeline-active-kpi-chip .chip-cumulative {
+  color: #4b5563;
+  border-right: 1.5px solid #ccc;
+  padding-right: 8px;
+}
+
+.timeline-breakdown-cards {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.timeline-day-card {
+  padding: 8px 6px;
+  text-align: center;
+  border: 2px solid var(--ink);
+  background: var(--white);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.timeline-day-card:hover,
+.timeline-day-card.is-selected {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.timeline-day-card .day-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.timeline-day-card .day-count {
+  font-size: 0.84rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.timeline-day-card .day-rate {
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.timeline-day-card .day-rate.positive {
+  color: #059669;
+}
+
+.timeline-day-card .day-rate.negative {
+  color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .timeline-breakdown-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-breakdown-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

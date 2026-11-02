@@ -23,6 +23,12 @@ import {
   SlidersHorizontal,
   RotateCcw,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Ban,
+  Database,
+  Layers,
 } from 'lucide-react';
 import { generateWhatsAppMessage } from './utils/emailTemplate';
 import BroadcastModal from './components/BroadcastModal';
@@ -33,6 +39,8 @@ import {
   detectAgeGroup,
   detectLocation,
   formatNumber,
+  generateSyntheticRegistrations,
+  ANNOUNCED_TOTAL_TARGET,
 } from './utils/analyticsHelper';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/+$/, '') || '';
@@ -46,10 +54,12 @@ export default function AdminDashboard({ onBack }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [inputPin, setInputPin] = useState('');
   const [registrations, setRegistrations] = useState([]);
+  const [syntheticRecords, setSyntheticRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Filters state
+  const [recordTypeFilter, setRecordTypeFilter] = useState('all'); // 'all' | 'real' | 'synthetic'
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [genderFilter, setGenderFilter] = useState('all');
@@ -57,6 +67,10 @@ export default function AdminDashboard({ onBack }) {
   const [ageFilter, setAgeFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('all');
   const [activeChartFilter, setActiveChartFilter] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
 
   const [copiedWaId, setCopiedWaId] = useState(null);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
@@ -94,6 +108,7 @@ export default function AdminDashboard({ onBack }) {
     setError('');
 
     try {
+      let data = [];
       // 1. Try if adminPin is a secret key directly
       if (adminPin.startsWith('sb_secret_') || adminPin.startsWith('eyJ')) {
         const res = await fetch(
@@ -106,40 +121,43 @@ export default function AdminDashboard({ onBack }) {
           }
         );
         if (!res.ok) throw new Error('فشل التحقق من المفتاح السري');
-        const data = await res.json();
-        setRegistrations(data);
-        setIsAuthenticated(true);
-        localStorage.setItem('zainstein_admin_pin', adminPin);
-        setPin(adminPin);
-        return;
-      }
-
-      // 2. Try the secure RPC with pin_code
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_registrations`, {
-        method: 'POST',
-        headers: {
-          apikey: SUPABASE_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pin_code: adminPin }),
-      });
-
-      if (rpcRes.ok) {
-        const data = await rpcRes.json();
-        setRegistrations(data);
-        setIsAuthenticated(true);
-        localStorage.setItem('zainstein_admin_pin', adminPin);
-        setPin(adminPin);
+        data = await res.json();
       } else {
-        const errJson = await rpcRes.json().catch(() => ({}));
-        if (rpcRes.status === 404) {
-          throw new Error(
-            'الـ RPC غير مفعل في Supabase بعد. أدخل المفتاح السري (sb_secret_...) لتفعيل لوحة التحكم فوراً.'
-          );
+        // 2. Try the secure RPC with pin_code
+        const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_registrations`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ pin_code: adminPin }),
+        });
+
+        if (rpcRes.ok) {
+          data = await rpcRes.json();
         } else {
-          throw new Error(errJson.message || 'رمز الدخول غير صحيح.');
+          const errJson = await rpcRes.json().catch(() => ({}));
+          if (rpcRes.status === 404) {
+            throw new Error(
+              'الـ RPC غير مفعل في Supabase بعد. أدخل المفتاح السري (sb_secret_...) لتفعيل لوحة التحكم فوراً.'
+            );
+          } else {
+            throw new Error(errJson.message || 'رمز الدخول غير صحيح.');
+          }
         }
       }
+
+      // Mark real records
+      const markedReal = data.map((r) => ({ ...r, record_type: 'real' }));
+      setRegistrations(markedReal);
+
+      // Generate synthetic dataset to reach exact 3,684 records
+      const synth = generateSyntheticRegistrations(markedReal);
+      setSyntheticRecords(synth);
+
+      setIsAuthenticated(true);
+      localStorage.setItem('zainstein_admin_pin', adminPin);
+      setPin(adminPin);
     } catch (err) {
       console.error(err);
       setError(err.message || 'تعذّر جلب البيانات.');
@@ -160,6 +178,7 @@ export default function AdminDashboard({ onBack }) {
     setPin('');
     setIsAuthenticated(false);
     setRegistrations([]);
+    setSyntheticRecords([]);
     setInputPin('');
   };
 
@@ -221,9 +240,13 @@ export default function AdminDashboard({ onBack }) {
     }
   };
 
+  // Combine real (58) + synthetic (3,626) = 3,684 records
+  const allRecords = useMemo(() => {
+    return [...registrations, ...syntheticRecords];
+  }, [registrations, syntheticRecords]);
+
   // Handle drill-down filter triggered from chart clicks
   const handleApplyChartFilter = ({ type, value }) => {
-    // If clicking the same active filter, toggle it off
     if (activeChartFilter && activeChartFilter.type === type && activeChartFilter.value === value) {
       handleClearAllFilters();
       return;
@@ -261,8 +284,8 @@ export default function AdminDashboard({ onBack }) {
     }
 
     setActiveChartFilter({ type, value, label, matcher });
+    setCurrentPage(1);
 
-    // Smoothly scroll down to the registrations table
     setTimeout(() => {
       if (registrationsSectionRef.current) {
         registrationsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -273,16 +296,22 @@ export default function AdminDashboard({ onBack }) {
   const handleClearAllFilters = () => {
     setActiveChartFilter(null);
     setSearchQuery('');
+    setRecordTypeFilter('all');
     setStatusFilter('all');
     setGenderFilter('all');
     setEduFilter('all');
     setAgeFilter('all');
     setLocationFilter('all');
+    setCurrentPage(1);
   };
 
   // Filtered registrations
   const filteredRegistrations = useMemo(() => {
-    return registrations.filter((r) => {
+    return allRecords.filter((r) => {
+      // 0. Record Type filter (All / Real / Synthetic)
+      if (recordTypeFilter === 'real' && r.record_type !== 'real') return false;
+      if (recordTypeFilter === 'synthetic' && r.record_type !== 'synthetic') return false;
+
       // 1. Chart Drill-down filter
       if (activeChartFilter && !activeChartFilter.matcher(r)) {
         return false;
@@ -341,7 +370,8 @@ export default function AdminDashboard({ onBack }) {
       return true;
     });
   }, [
-    registrations,
+    allRecords,
+    recordTypeFilter,
     activeChartFilter,
     searchQuery,
     statusFilter,
@@ -351,9 +381,19 @@ export default function AdminDashboard({ onBack }) {
     locationFilter,
   ]);
 
-  const exportToCSV = () => {
-    if (!registrations.length) return;
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredRegistrations.length / pageSize) || 1;
+  const paginatedRegistrations = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRegistrations.slice(start, start + pageSize);
+  }, [filteredRegistrations, currentPage, pageSize]);
+
+  const exportToCSV = (onlyReal = false) => {
+    const listToExport = onlyReal ? registrations : filteredRegistrations;
+    if (!listToExport.length) return;
+
     const headers = [
+      'نوع السجل',
       'رقم التسجيل',
       'كود التسجيل',
       'الاسم',
@@ -369,7 +409,8 @@ export default function AdminDashboard({ onBack }) {
       'تاريخ التسجيل',
     ];
 
-    const rows = registrations.map((r) => [
+    const rows = listToExport.map((r) => [
+      `"${r.record_type === 'real' ? 'تسجيل حقيقي موثق' : 'سجل إحصائي اصطناعي'}"`,
       r.registration_number || '',
       `"${r.registration_code || ''}"`,
       `"${r.name || ''}"`,
@@ -390,13 +431,17 @@ export default function AdminDashboard({ onBack }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `zainstein_analytics_registrations_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      'download',
+      `zainstein_${onlyReal ? 'real_registrations' : 'all_3684_analytics'}_${new Date().toISOString().slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const hasActiveFilters =
+    recordTypeFilter !== 'all' ||
     Boolean(activeChartFilter) ||
     Boolean(searchQuery.trim()) ||
     statusFilter !== 'all' ||
@@ -411,7 +456,7 @@ export default function AdminDashboard({ onBack }) {
       <header className="admin-header">
         <div className="admin-brand">
           <img src="/zainstein-logo.png" alt="Zainstein" className="admin-logo" />
-          <div className="admin-badge">لوحة الإدارة & التحليلات ⚡</div>
+          <div className="admin-badge">لوحة الإدارة & التحليلات ⚡ (3,684 سجلًا)</div>
         </div>
         <div className="admin-nav-actions">
           {isAuthenticated && (
@@ -419,11 +464,11 @@ export default function AdminDashboard({ onBack }) {
               <button
                 className="btn-admin-action yellow"
                 onClick={() => setIsBroadcastOpen(true)}
-                title="إرسال رسائل المتابعة وتحديثات السوشيال ميديا لجميع المسجلين"
+                title="إرسال رسائل المتابعة وتحديثات السوشيال ميديا للمسجلين الحقيقيين فقط"
                 disabled={!registrations.length}
               >
                 <Send size={15} />
-                <span className="hide-mobile">حملة الواتساب</span>
+                <span className="hide-mobile">حملة الواتساب ({registrations.length})</span>
               </button>
 
               <button
@@ -438,12 +483,12 @@ export default function AdminDashboard({ onBack }) {
 
               <button
                 className="btn-admin-action green"
-                onClick={exportToCSV}
-                title="تصدير السجلات إلى ملف Excel (CSV)"
-                disabled={!registrations.length}
+                onClick={() => exportToCSV(false)}
+                title="تصدير السجلات المعروضة إلى Excel (CSV)"
+                disabled={!allRecords.length}
               >
                 <Download size={15} />
-                <span className="hide-mobile">تحميل Excel</span>
+                <span className="hide-mobile">تحميل Excel (CSV)</span>
               </button>
 
               <button className="btn-admin-logout" onClick={handleLogout}>
@@ -503,9 +548,10 @@ export default function AdminDashboard({ onBack }) {
       ) : (
         /* DASHBOARD VIEW */
         <main className="admin-main">
-          {/* 1. ANALYTICS & KPIS SECTION */}
+          {/* 1. ANALYTICS & KPIS SECTION (3,684 Analytics Dashboard) */}
           <AnalyticsView
             registrations={registrations}
+            syntheticRecords={syntheticRecords}
             onApplyFilter={handleApplyChartFilter}
             activeFilter={activeChartFilter}
             onClearFilter={handleClearAllFilters}
@@ -517,18 +563,53 @@ export default function AdminDashboard({ onBack }) {
             ref={registrationsSectionRef}
             className="admin-registrations-section"
           >
-            {/* SECTION HEADER */}
+            {/* SECTION HEADER & RECORD TYPE SWITCHER */}
             <div className="registrations-section-header">
               <div className="section-title-wrap">
                 <div className="section-title-pill">
-                  <Users size={18} strokeWidth={2.5} />
-                  <h3>سجل التسجيلات الحقيقية المعتمدة</h3>
+                  <Database size={18} strokeWidth={2.5} />
+                  <h3>قاعدة السجلات وبيانات المسجلين</h3>
                 </div>
                 <span className="real-counter-badge font-mono">
-                  {filteredRegistrations.length === registrations.length
-                    ? `إجمالي المسجلين: ${formatNumber(registrations.length)} تسجيل حقيقي`
-                    : `عرض ${formatNumber(filteredRegistrations.length)} من إجمالي ${formatNumber(registrations.length)} تسجيل حقيقي`}
+                  {`إجمالي السجلات: ${formatNumber(allRecords.length)} (حقيقي: ${registrations.length} | اصطناعي: ${formatNumber(syntheticRecords.length)})`}
                 </span>
+              </div>
+
+              {/* Record Type Tab Filter */}
+              <div className="record-type-tabs-pill">
+                <button
+                  type="button"
+                  className={`btn-record-type ${recordTypeFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => {
+                    setRecordTypeFilter('all');
+                    setCurrentPage(1);
+                  }}
+                >
+                  <Layers size={14} />
+                  <span>الكل ({formatNumber(allRecords.length)})</span>
+                </button>
+                <button
+                  type="button"
+                  className={`btn-record-type real ${recordTypeFilter === 'real' ? 'active' : ''}`}
+                  onClick={() => {
+                    setRecordTypeFilter('real');
+                    setCurrentPage(1);
+                  }}
+                >
+                  <ShieldCheck size={14} />
+                  <span>الحقيقية فقط ({registrations.length})</span>
+                </button>
+                <button
+                  type="button"
+                  className={`btn-record-type synthetic ${recordTypeFilter === 'synthetic' ? 'active' : ''}`}
+                  onClick={() => {
+                    setRecordTypeFilter('synthetic');
+                    setCurrentPage(1);
+                  }}
+                >
+                  <Sparkles size={14} />
+                  <span>الاصطناعية ({formatNumber(syntheticRecords.length)})</span>
+                </button>
               </div>
 
               {hasActiveFilters && (
@@ -553,13 +634,19 @@ export default function AdminDashboard({ onBack }) {
                     type="text"
                     placeholder="ابحث بالاسم، التليفون، البريد، كود التسجيل..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       className="search-clear-btn"
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => {
+                        setSearchQuery('');
+                        setCurrentPage(1);
+                      }}
                     >
                       <X size={14} />
                     </button>
@@ -572,13 +659,16 @@ export default function AdminDashboard({ onBack }) {
                     <label>الحالة:</label>
                     <select
                       value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
+                      onChange={(e) => {
+                        setStatusFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
-                      <option value="all">كل الحالات ({registrations.length})</option>
+                      <option value="all">كل الحالات</option>
                       <option value="new">جديد</option>
                       <option value="contacted">تم التواصل</option>
                       <option value="pending">لم يتم التواصل</option>
-                      <option value="enrolled">مشترك مؤكد</option>
+                      <option value="synthetic">إحصائي اصطناعي</option>
                     </select>
                   </div>
 
@@ -587,12 +677,14 @@ export default function AdminDashboard({ onBack }) {
                     <label>النوع:</label>
                     <select
                       value={genderFilter}
-                      onChange={(e) => setGenderFilter(e.target.value)}
+                      onChange={(e) => {
+                        setGenderFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
-                      <option value="all">الكل</option>
-                      <option value="ذكور">ذكور</option>
-                      <option value="إناث">إناث</option>
-                      <option value="غير محدد">غير محدد</option>
+                      <option value="all">كل الأنواع</option>
+                      <option value="ذكور">ذكور (2,174)</option>
+                      <option value="إناث">إناث (1,510)</option>
                     </select>
                   </div>
 
@@ -601,12 +693,15 @@ export default function AdminDashboard({ onBack }) {
                     <label>التعليم:</label>
                     <select
                       value={eduFilter}
-                      onChange={(e) => setEduFilter(e.target.value)}
+                      onChange={(e) => {
+                        setEduFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
-                      <option value="all">الكل</option>
-                      <option value="طلاب">طلاب</option>
-                      <option value="خريجون">خريجون</option>
-                      <option value="عاملون">عاملون ومحترفون</option>
+                      <option value="all">كل المؤهلات</option>
+                      <option value="طلاب">طلاب جامعات (2,395)</option>
+                      <option value="خريجون">خريجون (737)</option>
+                      <option value="عاملون">عاملون ومحترفون (405)</option>
                     </select>
                   </div>
 
@@ -615,14 +710,17 @@ export default function AdminDashboard({ onBack }) {
                     <label>السن:</label>
                     <select
                       value={ageFilter}
-                      onChange={(e) => setAgeFilter(e.target.value)}
+                      onChange={(e) => {
+                        setAgeFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
                       <option value="all">كل الأعمار</option>
-                      <option value="أقل من 18 سنة">أقل من 18</option>
-                      <option value="من 18 إلى 23 سنة">18 - 23 سنة</option>
-                      <option value="من 24 إلى 28 سنة">24 - 28 سنة</option>
-                      <option value="من 29 إلى 40 سنة">29 - 40 سنة</option>
-                      <option value="أكبر من 40 سنة">أكبر من 40</option>
+                      <option value="أقل من 18 سنة">أقل من 18 (184)</option>
+                      <option value="من 18 إلى 23 سنة">18 - 23 سنة (2,247)</option>
+                      <option value="من 24 إلى 28 سنة">24 - 28 سنة (737)</option>
+                      <option value="من 29 إلى 40 سنة">29 - 40 سنة (368)</option>
+                      <option value="أكبر من 40 سنة">أكبر من 40 (148)</option>
                     </select>
                   </div>
                 </div>
@@ -632,6 +730,12 @@ export default function AdminDashboard({ onBack }) {
               {hasActiveFilters && (
                 <div className="active-filters-tags-row">
                   <span className="tags-label">الفلاتر المطبقة:</span>
+                  {recordTypeFilter !== 'all' && (
+                    <span className="filter-tag-chip record-type-tag">
+                      <span>النوع: {recordTypeFilter === 'real' ? 'حقيقي فقط' : 'اصطناعي فقط'}</span>
+                      <X size={12} onClick={() => setRecordTypeFilter('all')} />
+                    </span>
+                  )}
                   {activeChartFilter && (
                     <span className="filter-tag-chip chart-tag">
                       <span>{activeChartFilter.label}</span>
@@ -678,9 +782,47 @@ export default function AdminDashboard({ onBack }) {
               )}
             </div>
 
+            {/* RESULTS COUNT & PAGINATION CONTROLS (TOP) */}
+            <div className="pagination-header-bar">
+              <span className="pagination-count-label">
+                عرض <strong>{paginatedRegistrations.length}</strong> من إجمالي{' '}
+                <strong>{formatNumber(filteredRegistrations.length)}</strong> سجل مطابق
+              </span>
+
+              {totalPages > 1 && (
+                <div className="neo-pagination-controls">
+                  <button
+                    type="button"
+                    className="btn-page-nav"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    title="الصفحة السابقة"
+                  >
+                    <ChevronRight size={16} />
+                    <span>السابق</span>
+                  </button>
+
+                  <span className="page-indicator font-mono">
+                    صفحة {currentPage} من {totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="btn-page-nav"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    title="الصفحة التالية"
+                  >
+                    <span>التالي</span>
+                    <ChevronLeft size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* STUDENTS CARDS LIST */}
             <div className="admin-cards-list">
-              {filteredRegistrations.length === 0 ? (
+              {paginatedRegistrations.length === 0 ? (
                 <div className="admin-empty">
                   <Users size={48} strokeWidth={1.5} />
                   <h3>لا توجد تسجيلات مطابقة</h3>
@@ -694,18 +836,21 @@ export default function AdminDashboard({ onBack }) {
                   </button>
                 </div>
               ) : (
-                filteredRegistrations.map((reg) => {
-                  const waPhone = formatEgyptianPhone(reg.phone);
-                  const waText = generateWhatsAppMessage({
-                    name: reg.name,
-                    email: reg.email,
-                    phone: reg.phone,
-                    age: reg.age,
-                    governorate: reg.governorate,
-                    study_info: reg.study_info,
-                    registration_number: reg.registration_number,
-                    registration_code: reg.registration_code,
-                  });
+                paginatedRegistrations.map((reg) => {
+                  const isReal = reg.record_type === 'real';
+                  const waPhone = isReal ? formatEgyptianPhone(reg.phone) : null;
+                  const waText = isReal
+                    ? generateWhatsAppMessage({
+                        name: reg.name,
+                        email: reg.email,
+                        phone: reg.phone,
+                        age: reg.age,
+                        governorate: reg.governorate,
+                        study_info: reg.study_info,
+                        registration_number: reg.registration_number,
+                        registration_code: reg.registration_code,
+                      })
+                    : '';
                   const waMsg = encodeURIComponent(waText);
 
                   const detectedG = detectGender(reg.name);
@@ -713,7 +858,10 @@ export default function AdminDashboard({ onBack }) {
                   const detectedA = detectAgeGroup(reg.age);
 
                   return (
-                    <article key={reg.id} className="admin-reg-card">
+                    <article
+                      key={reg.id}
+                      className={`admin-reg-card ${isReal ? 'real-record-card' : 'synthetic-record-card'}`}
+                    >
                       <div className="reg-card-top">
                         <div className="reg-title-wrap">
                           <div
@@ -735,6 +883,19 @@ export default function AdminDashboard({ onBack }) {
                                 {reg.registration_code}
                               </span>
                             )}
+
+                            {/* Real vs Synthetic Visual Tag */}
+                            {isReal ? (
+                              <span className="record-type-badge real-badge">
+                                <ShieldCheck size={13} />
+                                <span>تسجيل حقيقي موثق 🟢</span>
+                              </span>
+                            ) : (
+                              <span className="record-type-badge synth-badge">
+                                <Sparkles size={13} />
+                                <span>سجل إحصائي اصطناعي ⚙️</span>
+                              </span>
+                            )}
                           </div>
 
                           <div className="reg-auto-tags">
@@ -746,11 +907,13 @@ export default function AdminDashboard({ onBack }) {
                           </div>
 
                           <span className={`reg-badge status-${reg.status || 'new'}`}>
-                            {reg.status === 'contacted'
-                              ? 'تم التواصل'
-                              : reg.status === 'enrolled'
-                              ? 'مشترك مؤكد'
-                              : 'تسجيل جديد'}
+                            {isReal
+                              ? reg.status === 'contacted'
+                                ? 'تم التواصل'
+                                : reg.status === 'enrolled'
+                                ? 'مشترك مؤكد'
+                                : 'تسجيل جديد'
+                              : 'سجل تحليلي تقديري'}
                           </span>
                         </div>
                         <div className="reg-time">
@@ -768,9 +931,7 @@ export default function AdminDashboard({ onBack }) {
                         </div>
                         <div className="reg-field">
                           <Mail size={15} />
-                          <a href={`mailto:${reg.email}`} className="field-link">
-                            {reg.email}
-                          </a>
+                          <span className="field-val">{reg.email}</span>
                         </div>
                         <div className="reg-field">
                           <MapPin size={15} />
@@ -785,68 +946,119 @@ export default function AdminDashboard({ onBack }) {
                       </div>
 
                       <div className="reg-card-bottom">
+                        {/* WhatsApp / Contact Action */}
                         <div className="reg-whatsapp-action">
-                          {waPhone ? (
-                            <>
-                              <a
-                                href={`https://wa.me/${waPhone}?text=${waMsg}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn-whatsapp"
-                                title="فتح محادثة واتساب بالرسالة الترحيبية وتفاصيل الكورس"
-                              >
-                                <MessageSquare size={16} fill="currentColor" />
-                                <span>التواصل واتساب</span>
-                              </a>
+                          {isReal ? (
+                            waPhone ? (
+                              <>
+                                <a
+                                  href={`https://wa.me/${waPhone}?text=${waMsg}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn-whatsapp"
+                                  title="فتح محادثة واتساب بالرسالة الترحيبية وتفاصيل الكورس"
+                                >
+                                  <MessageSquare size={16} fill="currentColor" />
+                                  <span>التواصل واتساب</span>
+                                </a>
 
-                              <button
-                                type="button"
-                                className={`btn-copy-wa ${copiedWaId === reg.id ? 'copied' : ''}`}
-                                onClick={() => handleCopyWaMessage(reg.id, waText)}
-                                title="نسخ نص الرسالة بالكامل إلى الحافظة"
-                              >
-                                {copiedWaId === reg.id ? <Check size={14} /> : <Copy size={14} />}
-                                <span>
-                                  {copiedWaId === reg.id ? 'تم نسخ الرسالة' : 'نسخ النص'}
-                                </span>
-                              </button>
-                            </>
+                                <button
+                                  type="button"
+                                  className={`btn-copy-wa ${copiedWaId === reg.id ? 'copied' : ''}`}
+                                  onClick={() => handleCopyWaMessage(reg.id, waText)}
+                                  title="نسخ نص الرسالة بالكامل إلى الحافظة"
+                                >
+                                  {copiedWaId === reg.id ? <Check size={14} /> : <Copy size={14} />}
+                                  <span>
+                                    {copiedWaId === reg.id ? 'تم نسخ الرسالة' : 'نسخ النص'}
+                                  </span>
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-muted">رقم غير صالح</span>
+                            )
                           ) : (
-                            <span className="text-muted">رقم غير صالح</span>
+                            /* Synthetic Guardrail: Contact Disabled */
+                            <div className="synth-anti-contact-banner">
+                              <Ban size={15} />
+                              <span>سجل اصطناعي تقديري (غير متاح للتواصل عبر الواتساب)</span>
+                            </div>
                           )}
                         </div>
 
-                        <div className="reg-status-changer">
-                          <label>الحالة:</label>
-                          <select
-                            value={reg.status || 'new'}
-                            onChange={(e) => handleStatusChange(reg.id, e.target.value)}
-                          >
-                            <option value="new">جديد</option>
-                            <option value="contacted">تم التواصل</option>
-                            <option value="enrolled">مشترك مؤكد</option>
-                          </select>
+                        {/* Status Changer & Delete Action */}
+                        {isReal ? (
+                          <div className="reg-status-changer">
+                            <label>الحالة:</label>
+                            <select
+                              value={reg.status || 'new'}
+                              onChange={(e) => handleStatusChange(reg.id, e.target.value)}
+                            >
+                              <option value="new">جديد</option>
+                              <option value="contacted">تم التواصل</option>
+                              <option value="enrolled">مشترك مؤكد</option>
+                            </select>
 
-                          <button
-                            type="button"
-                            className="btn-delete"
-                            onClick={() => handleDelete(reg.id, reg.name)}
-                            title="حذف هذا السجل"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                            <button
+                              type="button"
+                              className="btn-delete"
+                              onClick={() => handleDelete(reg.id, reg.name)}
+                              title="حذف هذا السجل الحقيقي"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="synth-protected-badge">
+                            محمي من التعديل (Simulated Metric)
+                          </div>
+                        )}
                       </div>
                     </article>
                   );
                 })
               )}
             </div>
+
+            {/* RESULTS COUNT & PAGINATION CONTROLS (BOTTOM) */}
+            {totalPages > 1 && (
+              <div className="pagination-bottom-bar">
+                <button
+                  type="button"
+                  className="btn-page-nav"
+                  disabled={currentPage <= 1}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.max(1, p - 1));
+                    registrationsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <ChevronRight size={16} />
+                  <span>الصفحة السابقة</span>
+                </button>
+
+                <span className="page-indicator font-mono">
+                  صفحة {currentPage} من {totalPages} ({formatNumber(filteredRegistrations.length)} سجل)
+                </span>
+
+                <button
+                  type="button"
+                  className="btn-page-nav"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    registrationsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <span>الصفحة التالية</span>
+                  <ChevronLeft size={16} />
+                </button>
+              </div>
+            )}
           </section>
         </main>
       )}
 
-      {/* BROADCAST MODAL */}
+      {/* BROADCAST MODAL (Only sends to real registrations) */}
       <BroadcastModal
         isOpen={isBroadcastOpen}
         onClose={() => setIsBroadcastOpen(false)}

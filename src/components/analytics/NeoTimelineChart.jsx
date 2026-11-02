@@ -2,17 +2,14 @@ import React, { useState } from 'react';
 
 /**
  * NeoTimelineChart - Neo-Brutalist SVG Line & Area Timeline Chart
- * Props:
- * - data: Array<{ date, count, cumulative }>
- * - title: string
- * - subtitle: string
+ * Displays 7-day momentum, daily registration counts, and percentage growth/dip between days.
  */
 export default function NeoTimelineChart({
   data = [],
-  title = 'مسار نمو التسجيلات',
+  title = 'مسار وزخم حركة التسجيلات (7 أيام)',
   subtitle,
 }) {
-  const [activePoint, setActivePoint] = useState(null);
+  const [hoveredIdx, setHoveredIdx] = useState(null);
 
   if (!data || data.length === 0) {
     return (
@@ -23,17 +20,16 @@ export default function NeoTimelineChart({
     );
   }
 
-  const width = 640;
-  const height = 180;
-  const padding = { top: 24, right: 30, bottom: 36, left: 40 };
+  const width = 680;
+  const height = 220;
+  const padding = { top: 32, right: 36, bottom: 44, left: 48 };
 
   const innerWidth = width - padding.left - padding.right;
   const innerHeight = height - padding.top - padding.bottom;
 
-  const maxVal = Math.max(...data.map((d) => d.cumulative || d.count || 0), 10);
+  const maxVal = Math.max(...data.map((d) => d.count || d.cumulative || 0), 1200);
   const minVal = 0;
 
-  // Coordinate mapper
   const getX = (idx) => {
     if (data.length <= 1) return padding.left + innerWidth / 2;
     return padding.left + (idx / (data.length - 1)) * innerWidth;
@@ -44,10 +40,9 @@ export default function NeoTimelineChart({
     return padding.top + innerHeight - norm * innerHeight;
   };
 
-  // Generate SVG Path
   const points = data.map((d, i) => ({
     x: getX(i),
-    y: getY(d.cumulative || d.count),
+    y: getY(d.count || 0),
     ...d,
   }));
 
@@ -57,6 +52,8 @@ export default function NeoTimelineChart({
 
   const areaD = `${pathD} L ${points[points.length - 1].x} ${padding.top + innerHeight} L ${points[0].x} ${padding.top + innerHeight} Z`;
 
+  const activeItem = hoveredIdx !== null ? points[hoveredIdx] : points[points.length - 1];
+
   return (
     <div className="neo-timeline-card">
       <div className="chart-header">
@@ -64,9 +61,13 @@ export default function NeoTimelineChart({
           <h4 className="chart-card-title">{title}</h4>
           {subtitle && <span className="chart-card-subtitle">{subtitle}</span>}
         </div>
-        {activePoint && (
-          <div className="timeline-tooltip-badge font-mono">
-            {activePoint.date}: <strong>{activePoint.cumulative || activePoint.count} مسجل</strong>
+
+        {activeItem && (
+          <div className="timeline-active-kpi-chip">
+            <span className="chip-day">{activeItem.day || activeItem.date}:</span>
+            <strong className="chip-count font-mono">{activeItem.count?.toLocaleString('ar-EG')} تسجيل</strong>
+            {activeItem.rate && <span className="chip-rate font-mono">({activeItem.rate})</span>}
+            <span className="chip-cumulative font-mono">تراكمي: {activeItem.cumulative?.toLocaleString('ar-EG')}</span>
           </div>
         )}
       </div>
@@ -77,6 +78,13 @@ export default function NeoTimelineChart({
           className="neo-timeline-svg"
           preserveAspectRatio="none"
         >
+          <defs>
+            <linearGradient id="timelineGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ffe15a" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ffe15a" stopOpacity="0.08" />
+            </linearGradient>
+          </defs>
+
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => {
             const y = padding.top + innerHeight * (1 - pct);
@@ -97,7 +105,8 @@ export default function NeoTimelineChart({
                   textAnchor="end"
                   fontSize="10"
                   fontFamily="'Space Mono', monospace"
-                  fill="#666"
+                  fontWeight="600"
+                  fill="#555"
                 >
                   {val.toLocaleString('ar-EG')}
                 </text>
@@ -106,7 +115,7 @@ export default function NeoTimelineChart({
           })}
 
           {/* Area Fill */}
-          <path d={areaD} fill="var(--yellow)" fillOpacity="0.45" />
+          <path d={areaD} fill="url(#timelineGradient)" />
 
           {/* Line Stroke */}
           <path
@@ -118,38 +127,96 @@ export default function NeoTimelineChart({
             strokeLinejoin="round"
           />
 
-          {/* Data Points */}
-          {points.map((p, idx) => (
-            <g key={idx}>
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r="6"
-                fill="var(--white)"
-                stroke="var(--ink)"
-                strokeWidth="3"
-                className="timeline-point"
-                onMouseEnter={() => setActivePoint(p)}
-                onMouseLeave={() => setActivePoint(null)}
+          {/* Points & Interactive Nodes */}
+          {points.map((p, idx) => {
+            const isHovered = hoveredIdx === idx;
+            return (
+              <g
+                key={idx}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
                 style={{ cursor: 'pointer' }}
-              />
-              {/* Date label at bottom */}
-              {(data.length <= 8 || idx === 0 || idx === data.length - 1 || idx % 2 === 0) && (
+              >
+                {/* Vertical hover guide line */}
+                {isHovered && (
+                  <line
+                    x1={p.x}
+                    y1={padding.top}
+                    x2={p.x}
+                    y2={padding.top + innerHeight}
+                    stroke="var(--ink)"
+                    strokeWidth="1.5"
+                    strokeDasharray="3 3"
+                  />
+                )}
+
+                {/* Point circle */}
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={isHovered ? '8' : '6'}
+                  fill={isHovered ? 'var(--yellow)' : 'var(--white)'}
+                  stroke="var(--ink)"
+                  strokeWidth="3"
+                  className="timeline-point"
+                />
+
+                {/* Point Value label above circle */}
                 <text
                   x={p.x}
-                  y={height - 10}
+                  y={p.y - 12}
                   textAnchor="middle"
-                  fontSize="10"
-                  fontFamily="'Cairo', sans-serif"
-                  fontWeight="600"
-                  fill="#444"
+                  fontSize="11"
+                  fontFamily="'Space Mono', monospace"
+                  fontWeight="700"
+                  fill="var(--ink)"
                 >
-                  {p.date}
+                  {p.count?.toLocaleString('ar-EG')}
                 </text>
-              )}
-            </g>
-          ))}
+
+                {/* Day label below chart */}
+                <text
+                  x={p.x}
+                  y={height - 12}
+                  textAnchor="middle"
+                  fontSize="11"
+                  fontFamily="'Cairo', sans-serif"
+                  fontWeight={isHovered ? '700' : '600'}
+                  fill={isHovered ? 'var(--blue)' : '#333'}
+                >
+                  {p.day || p.date}
+                </text>
+              </g>
+            );
+          })}
         </svg>
+      </div>
+
+      {/* Daily Breakdown Chips Footer */}
+      <div className="timeline-breakdown-cards">
+        {data.map((item, idx) => {
+          const isSelected = hoveredIdx === idx;
+          return (
+            <div
+              key={idx}
+              className={`timeline-day-card ${isSelected ? 'is-selected' : ''}`}
+              onMouseEnter={() => setHoveredIdx(idx)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              <div className="day-name">{item.day || item.date}</div>
+              <div className="day-count font-mono">{item.count?.toLocaleString('ar-EG')}</div>
+              {item.rate && (
+                <div
+                  className={`day-rate font-mono ${
+                    item.rate.startsWith('+') ? 'positive' : 'negative'
+                  }`}
+                >
+                  {item.rate}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
