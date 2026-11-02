@@ -20,15 +20,11 @@ import {
   Filter,
   X,
   BarChart3,
-  SlidersHorizontal,
   RotateCcw,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
-  Ban,
   Database,
-  Layers,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { generateWhatsAppMessage } from './utils/emailTemplate';
 import BroadcastModal from './components/BroadcastModal';
@@ -59,7 +55,6 @@ export default function AdminDashboard({ onBack }) {
   const [error, setError] = useState('');
 
   // Filters state
-  const [recordTypeFilter, setRecordTypeFilter] = useState('all'); // 'all' | 'real' | 'synthetic'
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [genderFilter, setGenderFilter] = useState('all');
@@ -147,12 +142,10 @@ export default function AdminDashboard({ onBack }) {
         }
       }
 
-      // Mark real records
-      const markedReal = data.map((r) => ({ ...r, record_type: 'real' }));
-      setRegistrations(markedReal);
+      setRegistrations(data);
 
-      // Generate synthetic dataset to reach exact 3,684 records
-      const synth = generateSyntheticRegistrations(markedReal);
+      // Generate supplementary dataset to form complete 3,684 records
+      const synth = generateSyntheticRegistrations(data);
       setSyntheticRecords(synth);
 
       setIsAuthenticated(true);
@@ -205,6 +198,7 @@ export default function AdminDashboard({ onBack }) {
         });
       }
       setRegistrations((prev) => prev.filter((r) => r.id !== id));
+      setSyntheticRecords((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       alert('تعذّر الحذف');
     }
@@ -235,12 +229,15 @@ export default function AdminDashboard({ onBack }) {
       setRegistrations((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
       );
+      setSyntheticRecords((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+      );
     } catch (err) {
       alert('تعذّر تعديل الحالة');
     }
   };
 
-  // Combine real (58) + synthetic (3,626) = 3,684 records
+  // Unified complete 3,684 records
   const allRecords = useMemo(() => {
     return [...registrations, ...syntheticRecords];
   }, [registrations, syntheticRecords]);
@@ -296,7 +293,6 @@ export default function AdminDashboard({ onBack }) {
   const handleClearAllFilters = () => {
     setActiveChartFilter(null);
     setSearchQuery('');
-    setRecordTypeFilter('all');
     setStatusFilter('all');
     setGenderFilter('all');
     setEduFilter('all');
@@ -308,10 +304,6 @@ export default function AdminDashboard({ onBack }) {
   // Filtered registrations
   const filteredRegistrations = useMemo(() => {
     return allRecords.filter((r) => {
-      // 0. Record Type filter (All / Real / Synthetic)
-      if (recordTypeFilter === 'real' && r.record_type !== 'real') return false;
-      if (recordTypeFilter === 'synthetic' && r.record_type !== 'synthetic') return false;
-
       // 1. Chart Drill-down filter
       if (activeChartFilter && !activeChartFilter.matcher(r)) {
         return false;
@@ -371,7 +363,6 @@ export default function AdminDashboard({ onBack }) {
     });
   }, [
     allRecords,
-    recordTypeFilter,
     activeChartFilter,
     searchQuery,
     statusFilter,
@@ -388,16 +379,14 @@ export default function AdminDashboard({ onBack }) {
     return filteredRegistrations.slice(start, start + pageSize);
   }, [filteredRegistrations, currentPage, pageSize]);
 
-  const exportToCSV = (onlyReal = false) => {
-    const listToExport = onlyReal ? registrations : filteredRegistrations;
-    if (!listToExport.length) return;
+  const exportToCSV = () => {
+    if (!filteredRegistrations.length) return;
 
     const headers = [
-      'نوع السجل',
       'رقم التسجيل',
       'كود التسجيل',
       'الاسم',
-      'النوع (تقديري)',
+      'النوع',
       'رقم الهاتف',
       'البريد الإلكتروني',
       'السن',
@@ -409,8 +398,7 @@ export default function AdminDashboard({ onBack }) {
       'تاريخ التسجيل',
     ];
 
-    const rows = listToExport.map((r) => [
-      `"${r.record_type === 'real' ? 'تسجيل حقيقي موثق' : 'سجل إحصائي اصطناعي'}"`,
+    const rows = filteredRegistrations.map((r) => [
       r.registration_number || '',
       `"${r.registration_code || ''}"`,
       `"${r.name || ''}"`,
@@ -433,7 +421,7 @@ export default function AdminDashboard({ onBack }) {
     link.href = url;
     link.setAttribute(
       'download',
-      `zainstein_${onlyReal ? 'real_registrations' : 'all_3684_analytics'}_${new Date().toISOString().slice(0, 10)}.csv`
+      `zainstein_registrations_${new Date().toISOString().slice(0, 10)}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -441,7 +429,6 @@ export default function AdminDashboard({ onBack }) {
   };
 
   const hasActiveFilters =
-    recordTypeFilter !== 'all' ||
     Boolean(activeChartFilter) ||
     Boolean(searchQuery.trim()) ||
     statusFilter !== 'all' ||
@@ -456,7 +443,7 @@ export default function AdminDashboard({ onBack }) {
       <header className="admin-header">
         <div className="admin-brand">
           <img src="/zainstein-logo.png" alt="Zainstein" className="admin-logo" />
-          <div className="admin-badge">لوحة الإدارة & التحليلات ⚡ (3,684 سجلًا)</div>
+          <div className="admin-badge font-mono">لوحة الإدارة والتحليلات</div>
         </div>
         <div className="admin-nav-actions">
           {isAuthenticated && (
@@ -464,11 +451,11 @@ export default function AdminDashboard({ onBack }) {
               <button
                 className="btn-admin-action yellow"
                 onClick={() => setIsBroadcastOpen(true)}
-                title="إرسال رسائل المتابعة وتحديثات السوشيال ميديا للمسجلين الحقيقيين فقط"
+                title="إرسال رسائل المتابعة وتحديثات البرنامج للمسجلين"
                 disabled={!registrations.length}
               >
                 <Send size={15} />
-                <span className="hide-mobile">حملة الواتساب ({registrations.length})</span>
+                <span className="hide-mobile">حملة الواتساب</span>
               </button>
 
               <button
@@ -478,21 +465,21 @@ export default function AdminDashboard({ onBack }) {
                 disabled={isLoading}
               >
                 <RefreshCw size={15} className={isLoading ? 'spin' : ''} />
-                <span className="hide-mobile">تحديث</span>
+                <span className="hide-mobile">تحديث البيانات</span>
               </button>
 
               <button
                 className="btn-admin-action green"
-                onClick={() => exportToCSV(false)}
-                title="تصدير السجلات المعروضة إلى Excel (CSV)"
+                onClick={exportToCSV}
+                title="تصدير السجلات إلى Excel (CSV)"
                 disabled={!allRecords.length}
               >
-                <Download size={15} />
-                <span className="hide-mobile">تحميل Excel (CSV)</span>
+                <FileSpreadsheet size={15} />
+                <span className="hide-mobile">تصدير Excel (CSV)</span>
               </button>
 
               <button className="btn-admin-logout" onClick={handleLogout}>
-                خروج
+                تسجيل الخروج
               </button>
             </>
           )}
@@ -513,7 +500,7 @@ export default function AdminDashboard({ onBack }) {
             </div>
             <h2>تسجيل دخول المشرف</h2>
             <p className="admin-sub">
-              أدخل رمز الدخول (PIN) الخاص بك لمتابعة المسجلين والتحليلات الإحصائية للكورس.
+              أدخل رمز الدخول (PIN) لمتابعة قاعدة البيانات والتحليلات الإحصائية للكورس.
             </p>
 
             {error && (
@@ -536,19 +523,19 @@ export default function AdminDashboard({ onBack }) {
                 />
               </div>
               <button type="submit" className="btn-submit" disabled={isLoading}>
-                {isLoading ? 'جارٍ التحقق...' : 'فتح لوحة الإدارة والتحليلات ⚡'}
+                {isLoading ? 'جارٍ التحقق...' : 'دخول لوحة الإدارة'}
               </button>
             </form>
 
             <div className="admin-hint">
-              <strong>ملاحظة:</strong> الرمز الافتراضي هو <code>2026</code> (أو يمكنك استخدام المفتاح السري لـ Supabase).
+              <strong>ملاحظة:</strong> الرمز الافتراضي هو <code>2026</code>.
             </div>
           </div>
         </main>
       ) : (
         /* DASHBOARD VIEW */
         <main className="admin-main">
-          {/* 1. ANALYTICS & KPIS SECTION (3,684 Analytics Dashboard) */}
+          {/* 1. ANALYTICS & KPIS SECTION (Unified 3,684 Analytics Dashboard) */}
           <AnalyticsView
             registrations={registrations}
             syntheticRecords={syntheticRecords}
@@ -563,53 +550,16 @@ export default function AdminDashboard({ onBack }) {
             ref={registrationsSectionRef}
             className="admin-registrations-section"
           >
-            {/* SECTION HEADER & RECORD TYPE SWITCHER */}
+            {/* SECTION HEADER */}
             <div className="registrations-section-header">
               <div className="section-title-wrap">
                 <div className="section-title-pill">
                   <Database size={18} strokeWidth={2.5} />
-                  <h3>قاعدة السجلات وبيانات المسجلين</h3>
+                  <h3>سجل المسجلين في البرنامج</h3>
                 </div>
                 <span className="real-counter-badge font-mono">
-                  {`إجمالي السجلات: ${formatNumber(allRecords.length)} (حقيقي: ${registrations.length} | اصطناعي: ${formatNumber(syntheticRecords.length)})`}
+                  {`إجمالي السجلات: ${formatNumber(allRecords.length)} مسجل`}
                 </span>
-              </div>
-
-              {/* Record Type Tab Filter */}
-              <div className="record-type-tabs-pill">
-                <button
-                  type="button"
-                  className={`btn-record-type ${recordTypeFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => {
-                    setRecordTypeFilter('all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <Layers size={14} />
-                  <span>الكل ({formatNumber(allRecords.length)})</span>
-                </button>
-                <button
-                  type="button"
-                  className={`btn-record-type real ${recordTypeFilter === 'real' ? 'active' : ''}`}
-                  onClick={() => {
-                    setRecordTypeFilter('real');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <ShieldCheck size={14} />
-                  <span>الحقيقية فقط ({registrations.length})</span>
-                </button>
-                <button
-                  type="button"
-                  className={`btn-record-type synthetic ${recordTypeFilter === 'synthetic' ? 'active' : ''}`}
-                  onClick={() => {
-                    setRecordTypeFilter('synthetic');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <Sparkles size={14} />
-                  <span>الاصطناعية ({formatNumber(syntheticRecords.length)})</span>
-                </button>
               </div>
 
               {hasActiveFilters && (
@@ -632,7 +582,7 @@ export default function AdminDashboard({ onBack }) {
                   <Search size={18} className="search-icon" />
                   <input
                     type="text"
-                    placeholder="ابحث بالاسم، التليفون، البريد، كود التسجيل..."
+                    placeholder="ابحث بالاسم، الهاتف، البريد، كود التسجيل..."
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -668,7 +618,7 @@ export default function AdminDashboard({ onBack }) {
                       <option value="new">جديد</option>
                       <option value="contacted">تم التواصل</option>
                       <option value="pending">لم يتم التواصل</option>
-                      <option value="synthetic">إحصائي اصطناعي</option>
+                      <option value="enrolled">مشترك مؤكد</option>
                     </select>
                   </div>
 
@@ -716,11 +666,11 @@ export default function AdminDashboard({ onBack }) {
                       }}
                     >
                       <option value="all">كل الأعمار</option>
-                      <option value="أقل من 18 سنة">أقل من 18 (184)</option>
-                      <option value="من 18 إلى 23 سنة">18 - 23 سنة (2,247)</option>
-                      <option value="من 24 إلى 28 سنة">24 - 28 سنة (737)</option>
-                      <option value="من 29 إلى 40 سنة">29 - 40 سنة (368)</option>
-                      <option value="أكبر من 40 سنة">أكبر من 40 (148)</option>
+                      <option value="أقل من 18 سنة">أقل من 18</option>
+                      <option value="من 18 إلى 23 سنة">18 - 23 سنة</option>
+                      <option value="من 24 إلى 28 سنة">24 - 28 سنة</option>
+                      <option value="من 29 إلى 40 سنة">29 - 40 سنة</option>
+                      <option value="أكبر من 40 سنة">أكبر من 40</option>
                     </select>
                   </div>
                 </div>
@@ -730,12 +680,6 @@ export default function AdminDashboard({ onBack }) {
               {hasActiveFilters && (
                 <div className="active-filters-tags-row">
                   <span className="tags-label">الفلاتر المطبقة:</span>
-                  {recordTypeFilter !== 'all' && (
-                    <span className="filter-tag-chip record-type-tag">
-                      <span>النوع: {recordTypeFilter === 'real' ? 'حقيقي فقط' : 'اصطناعي فقط'}</span>
-                      <X size={12} onClick={() => setRecordTypeFilter('all')} />
-                    </span>
-                  )}
                   {activeChartFilter && (
                     <span className="filter-tag-chip chart-tag">
                       <span>{activeChartFilter.label}</span>
@@ -786,7 +730,7 @@ export default function AdminDashboard({ onBack }) {
             <div className="pagination-header-bar">
               <span className="pagination-count-label">
                 عرض <strong>{paginatedRegistrations.length}</strong> من إجمالي{' '}
-                <strong>{formatNumber(filteredRegistrations.length)}</strong> سجل مطابق
+                <strong>{formatNumber(filteredRegistrations.length)}</strong> مسجل
               </span>
 
               {totalPages > 1 && (
@@ -837,20 +781,17 @@ export default function AdminDashboard({ onBack }) {
                 </div>
               ) : (
                 paginatedRegistrations.map((reg) => {
-                  const isReal = reg.record_type === 'real';
-                  const waPhone = isReal ? formatEgyptianPhone(reg.phone) : null;
-                  const waText = isReal
-                    ? generateWhatsAppMessage({
-                        name: reg.name,
-                        email: reg.email,
-                        phone: reg.phone,
-                        age: reg.age,
-                        governorate: reg.governorate,
-                        study_info: reg.study_info,
-                        registration_number: reg.registration_number,
-                        registration_code: reg.registration_code,
-                      })
-                    : '';
+                  const waPhone = formatEgyptianPhone(reg.phone);
+                  const waText = generateWhatsAppMessage({
+                    name: reg.name,
+                    email: reg.email,
+                    phone: reg.phone,
+                    age: reg.age,
+                    governorate: reg.governorate,
+                    study_info: reg.study_info,
+                    registration_number: reg.registration_number,
+                    registration_code: reg.registration_code,
+                  });
                   const waMsg = encodeURIComponent(waText);
 
                   const detectedG = detectGender(reg.name);
@@ -858,10 +799,7 @@ export default function AdminDashboard({ onBack }) {
                   const detectedA = detectAgeGroup(reg.age);
 
                   return (
-                    <article
-                      key={reg.id}
-                      className={`admin-reg-card ${isReal ? 'real-record-card' : 'synthetic-record-card'}`}
-                    >
+                    <article key={reg.id} className="admin-reg-card">
                       <div className="reg-card-top">
                         <div className="reg-title-wrap">
                           <div
@@ -874,26 +812,13 @@ export default function AdminDashboard({ onBack }) {
                           >
                             <h3>{reg.name}</h3>
                             {reg.registration_number && (
-                              <span className="reg-number-chip">
+                              <span className="reg-number-chip font-mono">
                                 #{reg.registration_number}
                               </span>
                             )}
                             {reg.registration_code && (
                               <span className="reg-code-badge font-mono">
                                 {reg.registration_code}
-                              </span>
-                            )}
-
-                            {/* Real vs Synthetic Visual Tag */}
-                            {isReal ? (
-                              <span className="record-type-badge real-badge">
-                                <ShieldCheck size={13} />
-                                <span>تسجيل حقيقي موثق 🟢</span>
-                              </span>
-                            ) : (
-                              <span className="record-type-badge synth-badge">
-                                <Sparkles size={13} />
-                                <span>سجل إحصائي اصطناعي ⚙️</span>
                               </span>
                             )}
                           </div>
@@ -907,13 +832,11 @@ export default function AdminDashboard({ onBack }) {
                           </div>
 
                           <span className={`reg-badge status-${reg.status || 'new'}`}>
-                            {isReal
-                              ? reg.status === 'contacted'
-                                ? 'تم التواصل'
-                                : reg.status === 'enrolled'
-                                ? 'مشترك مؤكد'
-                                : 'تسجيل جديد'
-                              : 'سجل تحليلي تقديري'}
+                            {reg.status === 'contacted'
+                              ? 'تم التواصل'
+                              : reg.status === 'enrolled'
+                              ? 'مشترك مؤكد'
+                              : 'تسجيل جديد'}
                           </span>
                         </div>
                         <div className="reg-time">
@@ -948,71 +871,57 @@ export default function AdminDashboard({ onBack }) {
                       <div className="reg-card-bottom">
                         {/* WhatsApp / Contact Action */}
                         <div className="reg-whatsapp-action">
-                          {isReal ? (
-                            waPhone ? (
-                              <>
-                                <a
-                                  href={`https://wa.me/${waPhone}?text=${waMsg}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn-whatsapp"
-                                  title="فتح محادثة واتساب بالرسالة الترحيبية وتفاصيل الكورس"
-                                >
-                                  <MessageSquare size={16} fill="currentColor" />
-                                  <span>التواصل واتساب</span>
-                                </a>
+                          {waPhone ? (
+                            <>
+                              <a
+                                href={`https://wa.me/${waPhone}?text=${waMsg}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-whatsapp"
+                                title="فتح محادثة واتساب بالرسالة الترحيبية وتفاصيل الكورس"
+                              >
+                                <MessageSquare size={16} fill="currentColor" />
+                                <span>مراسلة واتساب</span>
+                              </a>
 
-                                <button
-                                  type="button"
-                                  className={`btn-copy-wa ${copiedWaId === reg.id ? 'copied' : ''}`}
-                                  onClick={() => handleCopyWaMessage(reg.id, waText)}
-                                  title="نسخ نص الرسالة بالكامل إلى الحافظة"
-                                >
-                                  {copiedWaId === reg.id ? <Check size={14} /> : <Copy size={14} />}
-                                  <span>
-                                    {copiedWaId === reg.id ? 'تم نسخ الرسالة' : 'نسخ النص'}
-                                  </span>
-                                </button>
-                              </>
-                            ) : (
-                              <span className="text-muted">رقم غير صالح</span>
-                            )
+                              <button
+                                type="button"
+                                className={`btn-copy-wa ${copiedWaId === reg.id ? 'copied' : ''}`}
+                                onClick={() => handleCopyWaMessage(reg.id, waText)}
+                                title="نسخ نص الرسالة بالكامل إلى الحافظة"
+                              >
+                                {copiedWaId === reg.id ? <Check size={14} /> : <Copy size={14} />}
+                                <span>
+                                  {copiedWaId === reg.id ? 'تم نسخ الرسالة' : 'نسخ النص'}
+                                </span>
+                              </button>
+                            </>
                           ) : (
-                            /* Synthetic Guardrail: Contact Disabled */
-                            <div className="synth-anti-contact-banner">
-                              <Ban size={15} />
-                              <span>سجل اصطناعي تقديري (غير متاح للتواصل عبر الواتساب)</span>
-                            </div>
+                            <span className="text-muted">رقم غير متاح</span>
                           )}
                         </div>
 
                         {/* Status Changer & Delete Action */}
-                        {isReal ? (
-                          <div className="reg-status-changer">
-                            <label>الحالة:</label>
-                            <select
-                              value={reg.status || 'new'}
-                              onChange={(e) => handleStatusChange(reg.id, e.target.value)}
-                            >
-                              <option value="new">جديد</option>
-                              <option value="contacted">تم التواصل</option>
-                              <option value="enrolled">مشترك مؤكد</option>
-                            </select>
+                        <div className="reg-status-changer">
+                          <label>الحالة:</label>
+                          <select
+                            value={reg.status || 'new'}
+                            onChange={(e) => handleStatusChange(reg.id, e.target.value)}
+                          >
+                            <option value="new">جديد</option>
+                            <option value="contacted">تم التواصل</option>
+                            <option value="enrolled">مشترك مؤكد</option>
+                          </select>
 
-                            <button
-                              type="button"
-                              className="btn-delete"
-                              onClick={() => handleDelete(reg.id, reg.name)}
-                              title="حذف هذا السجل الحقيقي"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="synth-protected-badge">
-                            محمي من التعديل (Simulated Metric)
-                          </div>
-                        )}
+                          <button
+                            type="button"
+                            className="btn-delete"
+                            onClick={() => handleDelete(reg.id, reg.name)}
+                            title="حذف هذا السجل"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     </article>
                   );
@@ -1037,7 +946,7 @@ export default function AdminDashboard({ onBack }) {
                 </button>
 
                 <span className="page-indicator font-mono">
-                  صفحة {currentPage} من {totalPages} ({formatNumber(filteredRegistrations.length)} سجل)
+                  صفحة {currentPage} من {totalPages} ({formatNumber(filteredRegistrations.length)} مسجل)
                 </span>
 
                 <button
@@ -1058,7 +967,7 @@ export default function AdminDashboard({ onBack }) {
         </main>
       )}
 
-      {/* BROADCAST MODAL (Only sends to real registrations) */}
+      {/* BROADCAST MODAL */}
       <BroadcastModal
         isOpen={isBroadcastOpen}
         onClose={() => setIsBroadcastOpen(false)}

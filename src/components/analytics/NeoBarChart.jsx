@@ -106,7 +106,11 @@ export default function NeoBarChart({
               title="اضغط لتصفية قائمة المسجلين بهذا التصنيف"
             >
               <div className="neo-bar-label-wrap">
-                {item.flag && <span className="bar-flag">{item.flag}</span>}
+                {item.code ? (
+                  <span className="bar-code-pill font-mono">{item.code}</span>
+                ) : item.flag ? (
+                  <span className="bar-code-pill font-mono">{item.flag}</span>
+                ) : null}
                 <span className="bar-label-text">{item.label}</span>
               </div>
 

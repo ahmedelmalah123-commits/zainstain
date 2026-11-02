@@ -12,9 +12,9 @@ import {
   RotateCcw,
 } from 'lucide-react';
 
-const DEFAULT_MESSAGE = `أهلًا تاني 👋
+const DEFAULT_MESSAGE = `أهلًا بك من جديد،
 
-عشان أي جديد عن الكورس يوصلك في وقته، خلّي بالك إننا هننشر كل التحديثات والإعلانات على صفحاتنا. تابعنا على الاتنين:
+عشان أي جديد عن الكورس يوصلك في وقته، خلّي بالك إننا بننشر كل التحديثات والإعلانات الرسمية على صفحاتنا:
 
 فيسبوك:
 https://www.facebook.com/share/1FxuC8BCBj/?mibextid=wwXIfr
@@ -22,9 +22,9 @@ https://www.facebook.com/share/1FxuC8BCBj/?mibextid=wwXIfr
 إنستجرام:
 https://www.instagram.com/zain.stein
 
-ولو عندك أي سؤال، ابعتلنا على الصفحة وهنرد عليك.
+ولو عندك أي استفسار، تقدر تبعتلنا مباشرة وهنرد عليك.
 
-نورتنا 🚀`;
+فريق عمل Zainstein Academy`;
 
 function cleanEgyptianPhone(raw) {
   if (!raw) return '';

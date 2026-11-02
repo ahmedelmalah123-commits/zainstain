@@ -3416,102 +3416,134 @@ footer p {
 }
 
 /* ========================================================
-   NEO-BRUTALIST 3,684 DATASET & PAGINATION STYLES
+   EXECUTIVE COMPARATIVE METRICS & UNIFIED ANALYTICS STYLES
    ======================================================== */
-.record-type-tabs-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--paper);
-  padding: 4px;
-  border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
-}
-
-.btn-record-type {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: 1.5px solid transparent;
-  background: transparent;
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-record-type:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.btn-record-type.active {
-  background: var(--white);
-  border-color: var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
-.btn-record-type.real.active {
-  background: var(--mint);
-}
-
-.btn-record-type.synthetic.active {
-  background: var(--yellow);
-}
-
-/* Record Type Visual Badges on Student Cards */
-.record-type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border: 1.5px solid var(--ink);
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
-.record-type-badge.real-badge {
-  background: #d4f8e3;
-  color: #0d5e31;
-}
-
-.record-type-badge.synth-badge {
-  background: #fff3c4;
-  color: #7a4f01;
-}
-
-.admin-reg-card.real-record-card {
-  border-left: 8px solid #10b981;
-}
-
-.admin-reg-card.synthetic-record-card {
-  border-left: 8px solid #f59e0b;
-  background: #fffdf9;
-}
-
-/* Synthetic Anti-Contact Banner (Strict Protection Guardrail) */
-.synth-anti-contact-banner {
+.executive-cohort-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  background: #fef3c7;
-  border: 2px dashed #d97706;
-  color: #92400e;
-  font-size: 0.82rem;
+  padding: 8px 16px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: 0.9rem;
   font-weight: 800;
 }
 
-.synth-protected-badge {
-  display: inline-flex;
+/* Comparative Metrics Section */
+.comparative-metrics-section {
+  margin-bottom: 24px;
+}
+
+.section-mini-header {
+  display: flex;
   align-items: center;
-  padding: 6px 12px;
-  background: #f3f4f6;
-  border: 1.5px solid #9ca3af;
-  color: #4b5563;
-  font-size: 0.75rem;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.comparative-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.compare-card {
+  padding: 16px;
+  background: var(--white);
+  border: 2.5px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compare-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.compare-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.compare-ratio {
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+}
+
+.compare-progress-track {
+  display: flex;
+  height: 12px;
+  background: #f0f0f0;
+  border: 1.5px solid var(--ink);
+  overflow: hidden;
+}
+
+.compare-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.compare-progress-fill.male {
+  background: #435bff;
+}
+
+.compare-progress-fill.female {
+  background: #ff7866;
+}
+
+.compare-progress-fill.domestic {
+  background: #ffe15a;
+}
+
+.compare-progress-fill.regional {
+  background: #b9edcf;
+}
+
+.compare-progress-fill.academic {
+  background: #ffe15a;
+}
+
+.compare-progress-fill.workforce {
+  background: #435bff;
+}
+
+.compare-progress-fill.youth {
+  background: #ffe15a;
+}
+
+.compare-footer-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.74rem;
   font-weight: 700;
+  color: #555;
+}
+
+/* Country / Region Code Pill in Horizontal Bar Chart */
+.bar-code-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  font-size: 0.7rem;
+  font-weight: 800;
+  margin-left: 6px;
+  min-width: 32px;
+  text-align: center;
 }
 
 /* Pagination Header & Controls */
@@ -3623,10 +3655,6 @@ footer p {
 
 .text-coral {
   color: #ff7866;
-}
-
-.record-type-tag {
-  background: var(--mint) !important;
 }
 
 /* Timeline Active KPI Chip & Breakdown Cards */

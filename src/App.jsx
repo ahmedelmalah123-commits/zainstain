@@ -700,7 +700,7 @@ export default function App() {
             style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}
             title="الدخول إلى لوحة الإدارة والتحليلات"
           >
-            <span>لوحة الإدارة ⚡</span>
+            <span>لوحة الإدارة</span>
           </button>
         </div>
       </footer>
